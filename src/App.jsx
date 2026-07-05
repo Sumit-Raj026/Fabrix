@@ -7,7 +7,7 @@ import ProductModal from './components/ProductModal';
 import WhatsAppButton from './components/WhatsAppButton';
 import { PRODUCTS } from './data/products';
 import { CONFIG } from './config';
-import { Mail, MapPin, Instagram, Heart } from 'lucide-react';
+import { Mail, MapPin, Instagram, Heart, Compass } from 'lucide-react';
 
 export default function App() {
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -82,6 +82,15 @@ export default function App() {
     return 0; // Default/Featured sorting
   });
 
+  const getRecommendations = () => {
+    let pool = PRODUCTS;
+    if (selectedCategory !== 'All') {
+      pool = PRODUCTS.filter((p) => p.category === selectedCategory);
+    }
+    if (pool.length === 0) pool = PRODUCTS;
+    return pool.slice(0, 3);
+  };
+
   const handleCustomOrderClick = () => {
     const message = `Hello Fabrix, I would like to inquire about placing a custom/bespoke order. Let's discuss design ideas and requirements!`;
     window.open(`https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
@@ -96,6 +105,7 @@ export default function App() {
         setSearchTerm={setSearchTerm} 
         theme={theme} 
         toggleTheme={toggleTheme} 
+        onSelectProduct={handleOpenProduct}
       />
 
       {/* Hero Section */}
@@ -134,16 +144,47 @@ export default function App() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-24 border border-dashed border-brand-border rounded-sm bg-brand-stone/40 mt-12">
-            <p className="text-sm text-stone-500 font-light italic mb-4">
-              No products found matching your search.
-            </p>
-            <button 
-              onClick={() => { setSearchTerm(''); setSelectedCategory('All'); }}
-              className="px-6 py-2.5 bg-brand-gold text-brand-charcoal text-xs font-bold tracking-widest uppercase hover:bg-brand-gold-hover transition-colors duration-300 rounded-sm"
-            >
-              Reset Filters
-            </button>
+          <div className="py-12 animate-fade-in">
+            {/* Not Found Card */}
+            <div className="text-center py-16 px-4 border border-dashed border-brand-border rounded-sm bg-brand-stone/30 mb-16 max-w-2xl mx-auto">
+              <div className="w-12 h-12 rounded-full bg-brand-gold/10 flex items-center justify-center mx-auto mb-4 border border-brand-gold/20">
+                <Compass className="w-6 h-6 text-brand-gold" />
+              </div>
+              <h3 className="font-serif text-lg font-light text-stone-900 dark:text-white mb-2 transition-colors duration-400">
+                Product Not Found
+              </h3>
+              <p className="text-stone-500 dark:text-stone-400 font-light text-xs max-w-md mx-auto leading-relaxed mb-6 transition-colors duration-400">
+                We couldn't find any items matching "{searchTerm}" {selectedCategory !== 'All' ? `in the ${selectedCategory} category` : ''}.
+              </p>
+              <button 
+                onClick={() => { setSearchTerm(''); setSelectedCategory('All'); }}
+                className="px-6 py-3 bg-brand-stone border border-brand-border text-stone-900 dark:text-white hover:border-brand-gold hover:text-brand-gold text-xs font-bold tracking-widest uppercase transition-all duration-300 rounded-sm"
+              >
+                Reset Search Filters
+              </button>
+            </div>
+
+            {/* Recommendations Grid */}
+            <div className="border-t border-brand-border/60 pt-16">
+              <div className="text-center mb-10">
+                <span className="text-[9px] font-bold text-brand-gold tracking-[0.3em] uppercase block mb-2">
+                  Suggestions For You
+                </span>
+                <h3 className="font-serif text-2xl font-light text-stone-900 dark:text-white transition-colors duration-400">
+                  Recommended Creations
+                </h3>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+                {getRecommendations().map((product) => (
+                  <ProductCard 
+                    key={product.id} 
+                    product={product} 
+                    onOpen={handleOpenProduct} 
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
