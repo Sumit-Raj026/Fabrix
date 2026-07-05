@@ -35,10 +35,10 @@ export default function Header({ searchTerm, setSearchTerm, theme, toggleTheme }
             <input
               type="text"
               id="search-input"
-              placeholder="SEARCH CATALOG..."
+              placeholder="SEARCH..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-28 sm:w-48 md:w-60 bg-brand-stone border border-brand-border text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 text-[10px] tracking-widest rounded-full py-2.5 pl-10 pr-4 outline-none focus:border-brand-gold transition-all duration-300"
+              className="w-32 sm:w-48 md:w-60 bg-brand-stone border border-brand-border text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 text-[10px] tracking-widest rounded-full py-2.5 pl-10 pr-4 outline-none focus:border-brand-gold transition-all duration-300"
             />
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400 dark:text-stone-500 pointer-events-none" />
           </div>

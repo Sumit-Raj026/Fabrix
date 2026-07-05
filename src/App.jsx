@@ -102,7 +102,7 @@ export default function App() {
       <Hero />
 
       {/* Catalog Main section */}
-      <main id="catalog" className="flex-grow max-w-7xl mx-auto px-4 md:px-6 py-16 w-full relative">
+      <main id="catalog" className="flex-grow max-w-7xl mx-auto px-4 md:px-6 py-16 w-full relative overflow-hidden">
         {/* Glow backdrop decorative */}
         <div className="absolute top-[20%] left-[50%] -translate-x-1/2 w-[800px] h-[800px] bg-brand-gold/[0.03] rounded-full filter blur-3xl pointer-events-none -z-10" />
 

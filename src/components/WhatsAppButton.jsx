@@ -21,7 +21,7 @@ export default function WhatsAppButton() {
             <span className="text-[10px] font-bold text-brand-gold tracking-widest uppercase">
               Support & Inquiries
             </span>
-            <span className="text-xs font-light text-stone-500 dark:text-stone-350 mt-0.5 whitespace-nowrap">
+            <span className="text-xs font-light text-stone-500 dark:text-stone-350 mt-0.5 whitespace-normal">
               Need custom sizing or designs? Chat with us.
             </span>
           </div>

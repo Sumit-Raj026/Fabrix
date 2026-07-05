@@ -48,10 +48,10 @@ export default function Filters({ selectedCategory, setSelectedCategory, sortBy,
             id="sort"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="bg-brand-stone border border-brand-border rounded-md px-3 py-2 text-[10px] font-bold tracking-widest text-stone-300 outline-none cursor-pointer focus:border-brand-gold/50 transition-colors duration-300"
+            className="bg-brand-stone border border-brand-border rounded-md px-3 py-2 text-[10px] font-bold tracking-widest text-stone-800 dark:text-stone-300 outline-none cursor-pointer focus:border-brand-gold/50 transition-colors duration-300"
           >
             {SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value} className="bg-brand-stone text-stone-300">
+              <option key={option.value} value={option.value} className="bg-brand-stone text-stone-800 dark:text-stone-300">
                 {option.label}
               </option>
             ))}
