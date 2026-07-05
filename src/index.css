@@ -1,0 +1,186 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Outfit:wght@200;300;400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+
+:root {
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "Outfit", sans-serif;
+
+  /* LIGHT MODE CONFIG (Theme Variables prefixed with --theme- to avoid circular collision with Tailwind v4) */
+  --theme-bg: #faf9f6;               /* Ivory/Cream light page background */
+  --theme-charcoal: #0a0a09;
+  --theme-stone: #ffffff;           /* Pure white for card backdrops */
+  --theme-stone-hover: #fcfbfa;
+  --theme-gold: #bca076;            /* Rich bronze gold for light mode */
+  --theme-gold-hover: #a5885e;
+  --theme-border: #eae8e1;          /* Warm gray border */
+  --theme-text: #1c1c1c;             /* Charcoal body text */
+  --theme-text-muted: #78716c;       /* Muted warm gray */
+  --theme-modal-bg: rgba(255, 255, 255, 0.95);
+  --theme-glass-bg: rgba(250, 249, 246, 0.85);
+  --theme-glow-1: rgba(188, 160, 118, 0.06);
+  --theme-glow-2: rgba(188, 160, 118, 0.03);
+  --theme-shadow: rgba(0, 0, 0, 0.05);
+  --theme-card-shadow-hover: rgba(188, 160, 118, 0.08);
+}
+
+.dark {
+  /* DARK MODE CONFIG */
+  --theme-bg: #0a0a09;               /* Obsidian black background */
+  --theme-charcoal: #0a0a09;
+  --theme-stone: #151513;           /* Dark stone card */
+  --theme-stone-hover: #1c1c1a;
+  --theme-gold: #dfba73;            /* Champagne Gold */
+  --theme-gold-hover: #f1cf8e;
+  --theme-border: #2c2c29;          /* Dark stone border */
+  --theme-text: #f3f3f3;             /* Off-white text */
+  --theme-text-muted: #a8a29e;       /* Muted gray */
+  --theme-modal-bg: rgba(21, 21, 19, 0.95);
+  --theme-glass-bg: rgba(10, 10, 9, 0.85);
+  --theme-glow-1: rgba(223, 186, 115, 0.08);
+  --theme-glow-2: rgba(223, 186, 115, 0.05);
+  --theme-shadow: rgba(0, 0, 0, 0.45);
+  --theme-card-shadow-hover: rgba(223, 186, 115, 0.08);
+}
+
+@theme {
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+  
+  --color-brand-charcoal: var(--theme-charcoal);
+  --color-brand-stone: var(--theme-stone);
+  --color-brand-stone-hover: var(--theme-stone-hover);
+  --color-brand-gold: var(--theme-gold);
+  --color-brand-gold-hover: var(--theme-gold-hover);
+  --color-brand-border: var(--theme-border);
+}
+
+/* Custom styles for luxury & premium look */
+html, body {
+  font-family: var(--font-sans);
+  background-color: var(--theme-bg);
+  color: var(--theme-text);
+  scroll-behavior: smooth;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--theme-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-brand-gold);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-gold-hover);
+}
+
+/* Frosted glass adjustments */
+.glass {
+  background: var(--theme-glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--color-brand-border);
+  transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+.glass-modal {
+  background: var(--theme-modal-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--color-brand-border);
+  transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+/* Premium Card hover styling */
+.premium-card {
+  background-color: var(--color-brand-stone);
+  border: 1px solid var(--color-brand-border);
+  transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 4px 30px var(--theme-shadow);
+}
+.premium-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(223, 186, 115, 0.4);
+  box-shadow: 0 10px 40px var(--theme-card-shadow-hover), 0 0 20px rgba(223, 186, 115, 0.03);
+}
+
+/* Image zoom in card */
+.product-card-img {
+  transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.premium-card:hover .product-card-img {
+  transform: scale(1.06);
+}
+
+/* Luxury button with shining animate */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 45%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 55%
+  );
+  transform: rotate(45deg);
+  transition: transform 0.5s ease;
+}
+.btn-shimmer:hover::after {
+  transform: translate(50%, 50%) rotate(45deg);
+}
+
+/* Mesh gradients for modern atmosphere */
+.mesh-glow-1 {
+  background: radial-gradient(circle, var(--theme-glow-1) 0%, transparent 60%);
+  transition: background 0.4s ease;
+}
+.mesh-glow-2 {
+  background: radial-gradient(circle, var(--theme-glow-2) 0%, transparent 70%);
+  transition: background 0.4s ease;
+}
+
+/* Scrollbar hiding utility */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom text selection */
+::selection {
+  background-color: rgba(223, 186, 115, 0.3);
+  color: #ffffff;
+}
+
+/* Scale animation for modal opening */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.animate-scale-in {
+  animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
