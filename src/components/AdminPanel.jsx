@@ -1,9 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { 
   LayoutDashboard, ShoppingBag, Tag, Plus, Edit2, Trash2, 
-  Image as ImageIcon, ArrowLeft, Check, X, Coins, Settings2, RefreshCw, FilePlus, LogOut
+  Image as ImageIcon, ArrowLeft, Check, X, Coins, Settings2, FilePlus, LogOut
 } from 'lucide-react';
-import { PRODUCTS } from '../data/products';
 
 export default function AdminPanel({ products, setProducts, categories, setCategories, onClose, onLogout }) {
   const [activeTab, setActiveTab] = useState('products'); // dashboard, products, categories
@@ -152,13 +151,7 @@ export default function AdminPanel({ products, setProducts, categories, setCateg
     }
   };
 
-  const handleRestoreDefaults = () => {
-    if (window.confirm("Reset all products and categories to default demonstration data? All your customizations will be wiped out.")) {
-      setProducts(PRODUCTS);
-      setCategories(["Home Decor", "Household Goods", "Customized Items"]);
-      alert("Defaults restored successfully!");
-    }
-  };
+
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-IN', {
@@ -192,13 +185,6 @@ export default function AdminPanel({ products, setProducts, categories, setCateg
         </div>
 
         <div className="flex items-center gap-3">
-          <button 
-            onClick={handleRestoreDefaults}
-            className="flex items-center gap-2 px-4 py-2 border border-stone-800 hover:border-brand-gold/60 text-xs tracking-wider uppercase text-stone-400 hover:text-brand-gold transition-all duration-300 rounded-sm"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Reset Defaults
-          </button>
 
           {onLogout && (
             <button 
