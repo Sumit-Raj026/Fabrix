@@ -9,7 +9,7 @@ import AdminLogin from './components/AdminLogin';
 import WhatsAppButton from './components/WhatsAppButton';
 import { PRODUCTS } from './data/products';
 import { CONFIG } from './config';
-import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { supabase, isSupabaseConfigured, db } from './lib/supabase';
 import { Mail, MapPin, Instagram, Heart, Loader2 } from 'lucide-react';
 
 export default function App() {
@@ -18,7 +18,7 @@ export default function App() {
   const [sortBy, setSortBy] = useState('default');
   const [selectedProduct, setSelectedProduct] = useState(null);
   
-  // Initialize dynamic products state from localStorage or default static database
+  // Initialize dynamic products state from localStorage (cache) or default static database
   const [products, setProducts] = useState(() => {
     const saved = localStorage.getItem('fabrix_products');
     if (saved) {
@@ -31,18 +31,17 @@ export default function App() {
     return PRODUCTS;
   });
 
-  // Initialize categories from localStorage
-  const [categories, setCategories] = useState(() => {
-    const saved = localStorage.getItem('fabrix_categories');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
+  // Fetch live products from Supabase database on mount
+  useEffect(() => {
+    db.getProducts().then((dbProducts) => {
+      if (dbProducts && dbProducts.length > 0) {
+        setProducts(dbProducts);
       }
-    }
-    return ["Home Decor", "Household Goods", "Customized Items"];
-  });
+    });
+  }, []);
+
+  // Compute categories dynamically from the products database
+  const categories = Array.from(new Set(products.map((p) => p.category)));
 
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -68,14 +67,10 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Sync products and categories
+  // Sync products cache to localStorage
   useEffect(() => {
     localStorage.setItem('fabrix_products', JSON.stringify(products));
   }, [products]);
-
-  useEffect(() => {
-    localStorage.setItem('fabrix_categories', JSON.stringify(categories));
-  }, [categories]);
 
   // Initialize theme from localStorage or default to dark
   const [theme, setTheme] = useState(() => {
@@ -179,7 +174,6 @@ export default function App() {
         products={products} 
         setProducts={setProducts} 
         categories={categories}
-        setCategories={setCategories}
         onClose={() => setIsAdminOpen(false)} 
         onLogout={handleLogout}
       />

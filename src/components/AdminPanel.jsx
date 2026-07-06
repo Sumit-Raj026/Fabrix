@@ -3,13 +3,14 @@ import {
   LayoutDashboard, ShoppingBag, Tag, Plus, Edit2, Trash2, 
   Image as ImageIcon, ArrowLeft, Check, X, Coins, Settings2, FilePlus, LogOut
 } from 'lucide-react';
-
-export default function AdminPanel({ products, setProducts, categories, setCategories, onClose, onLogout }) {
+import { db } from '../lib/supabase';
+export default function AdminPanel({ products, setProducts, categories, onClose, onLogout }) {
   const [activeTab, setActiveTab] = useState('products'); // dashboard, products, categories
   const [editingProduct, setEditingProduct] = useState(null); // null or product object
   const [isFormOpen, setIsFormOpen] = useState(false);
   
   // Category management states
+  const [localCategories, setLocalCategories] = useState(categories);
   const [newCategoryName, setNewCategoryName] = useState('');
   
   // Form states
@@ -28,7 +29,7 @@ export default function AdminPanel({ products, setProducts, categories, setCateg
   // Stats calculation
   const totalProducts = products.length;
   const totalValue = products.reduce((acc, curr) => acc + curr.price, 0);
-  const totalCategories = categories.length;
+  const totalCategories = localCategories.length;
   const customizableCount = products.filter(p => p.customizable).length;
 
   const handleOpenForm = (product = null) => {
@@ -49,7 +50,7 @@ export default function AdminPanel({ products, setProducts, categories, setCateg
       const nextNum = products.length + 1;
       setFormId(`FX-0${nextNum < 10 ? '0' + nextNum : nextNum}`);
       setFormTitle('');
-      setFormCategory(categories[0] || '');
+      setFormCategory(localCategories[0] || '');
       setFormPrice(0);
       setFormDescription('');
       setFormDetails(['']);
@@ -92,9 +93,15 @@ export default function AdminPanel({ products, setProducts, categories, setCateg
     setFormImages(prev => prev.filter((_, idx) => idx !== index));
   };
 
-  const handleSaveProduct = (e) => {
+  const handleSaveProduct = async (e) => {
     e.preventDefault();
     if (!formTitle.trim() || !formId.trim()) return;
+
+    // Prevent duplicate IDs on creations
+    if (!editingProduct && products.some(p => p.id === formId.trim())) {
+      alert("A product with this ID already exists!");
+      return;
+    }
 
     const filteredDetails = formDetails.filter(d => d.trim() !== '');
 
@@ -110,26 +117,33 @@ export default function AdminPanel({ products, setProducts, categories, setCateg
       customizationLabel: formCustomizable ? formCustomizationLabel.trim() : ""
     };
 
-    if (editingProduct) {
-      // Edit existing product
-      setProducts(prev => prev.map(p => p.id === editingProduct.id ? savedProduct : p));
-    } else {
-      // Add new product
-      // Prevent duplicate IDs
-      if (products.some(p => p.id === savedProduct.id)) {
-        alert("A product with this ID already exists!");
-        return;
-      }
-      setProducts(prev => [...prev, savedProduct]);
-    }
+    try {
+      await db.saveProduct(savedProduct);
 
-    setIsFormOpen(false);
-    setEditingProduct(null);
+      setProducts(prev => {
+        const exists = prev.some(p => p.id === savedProduct.id);
+        if (exists) {
+          return prev.map(p => p.id === savedProduct.id ? savedProduct : p);
+        } else {
+          return [...prev, savedProduct];
+        }
+      });
+
+      setIsFormOpen(false);
+      setEditingProduct(null);
+    } catch (err) {
+      alert("Failed to save product to database: " + (err.message || err));
+    }
   };
 
-  const handleDeleteProduct = (productId) => {
-    if (window.confirm("Are you sure you want to delete this product? This action cannot be undone.")) {
-      setProducts(prev => prev.filter(p => p.id !== productId));
+  const handleDeleteProduct = async (productId) => {
+    if (window.confirm("Are you sure you want to delete this product? This will remove it for all users across all devices.")) {
+      try {
+        await db.deleteProduct(productId);
+        setProducts(prev => prev.filter(p => p.id !== productId));
+      } catch (err) {
+        alert("Failed to delete product: " + (err.message || err));
+      }
     }
   };
 
@@ -137,17 +151,17 @@ export default function AdminPanel({ products, setProducts, categories, setCateg
     e.preventDefault();
     if (!newCategoryName.trim()) return;
     const clean = newCategoryName.trim();
-    if (categories.includes(clean)) {
+    if (localCategories.includes(clean)) {
       alert("Category already exists!");
       return;
     }
-    setCategories(prev => [...prev, clean]);
+    setLocalCategories(prev => [...prev, clean]);
     setNewCategoryName('');
   };
 
   const handleDeleteCategory = (cat) => {
     if (window.confirm(`Are you sure you want to delete "${cat}"? Products in this category will not be deleted, but you should re-assign them.`)) {
-      setCategories(prev => prev.filter(c => c !== cat));
+      setLocalCategories(prev => prev.filter(c => c !== cat));
     }
   };
 
@@ -470,7 +484,7 @@ export default function AdminPanel({ products, setProducts, categories, setCateg
 
               {/* Categories list */}
               <div className="bg-[#151513] border border-brand-border rounded-sm divide-y divide-brand-border/40 shadow-xl">
-                {categories.map((c) => (
+                {localCategories.map((c) => (
                   <div key={c} className="flex items-center justify-between p-5 hover:bg-stone-900/10 transition-colors duration-150">
                     <div className="flex items-center gap-3">
                       <Tag className="w-4 h-4 text-brand-gold" />
@@ -575,7 +589,7 @@ export default function AdminPanel({ products, setProducts, categories, setCateg
                     onChange={(e) => setFormCategory(e.target.value)}
                     className="w-full bg-brand-charcoal border border-brand-border focus:border-brand-gold text-xs tracking-wider rounded-sm p-3 outline-none text-stone-300 cursor-pointer transition-all duration-300"
                   >
-                    {categories.map((c) => (
+                    {localCategories.map((c) => (
                       <option key={c} value={c} className="bg-brand-charcoal text-white">{c}</option>
                     ))}
                   </select>
