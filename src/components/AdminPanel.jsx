@@ -401,7 +401,7 @@ export default function AdminPanel({ products, setProducts, categories, setCateg
                           </td>
                           {/* Category */}
                           <td className="py-4 px-6">
-                            <span className="px-2.5 py-1 bg-stone-900 border border-brand-border text-[9px] font-bold tracking-widest uppercase text-stone-400 rounded-sm">
+                            <span className="whitespace-nowrap px-2.5 py-1 bg-stone-900 border border-brand-border text-[9px] font-bold tracking-widest uppercase text-stone-400 rounded-sm">
                               {p.category}
                             </span>
                           </td>
