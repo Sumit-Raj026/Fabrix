@@ -1,6 +1,5 @@
 import React from 'react';
 
-const CATEGORIES = ["All", "Home Decor", "Household Goods", "Customized Items"];
 const SORT_OPTIONS = [
   { value: "default", label: "Featured" },
   { value: "price-asc", label: "Price: Low to High" },
@@ -8,13 +7,15 @@ const SORT_OPTIONS = [
   { value: "name-asc", label: "Name: A-Z" }
 ];
 
-export default function Filters({ selectedCategory, setSelectedCategory, sortBy, setSortBy, totalItems }) {
+export default function Filters({ selectedCategory, setSelectedCategory, sortBy, setSortBy, totalItems, categories = ["Home Decor", "Household Goods", "Customized Items"] }) {
+  const displayCategories = ["All", ...categories];
+
   return (
     <div className="w-full py-8 border-b border-brand-border flex flex-col md:flex-row md:items-center md:justify-between gap-6 px-4 md:px-0 max-w-7xl mx-auto">
       
       {/* Category Tabs */}
       <div className="flex items-center overflow-x-auto scrollbar-none gap-2 pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0">
-        {CATEGORIES.map((category) => {
+        {displayCategories.map((category) => {
           const isActive = selectedCategory === category;
           const buttonId = `filter-btn-${category.toLowerCase().replace(/\s+/g, '-')}`;
           return (

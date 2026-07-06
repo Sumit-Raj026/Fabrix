@@ -4,16 +4,78 @@ import Hero from './components/Hero';
 import Filters from './components/Filters';
 import ProductCard from './components/ProductCard';
 import ProductModal from './components/ProductModal';
+import AdminPanel from './components/AdminPanel';
+import AdminLogin from './components/AdminLogin';
 import WhatsAppButton from './components/WhatsAppButton';
 import { PRODUCTS } from './data/products';
 import { CONFIG } from './config';
-import { Mail, MapPin, Instagram, Heart } from 'lucide-react';
+import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { Mail, MapPin, Instagram, Heart, Loader2 } from 'lucide-react';
 
 export default function App() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('default');
   const [selectedProduct, setSelectedProduct] = useState(null);
+  
+  // Initialize dynamic products state from localStorage or default static database
+  const [products, setProducts] = useState(() => {
+    const saved = localStorage.getItem('fabrix_products');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return PRODUCTS;
+  });
+
+  // Initialize categories from localStorage
+  const [categories, setCategories] = useState(() => {
+    const saved = localStorage.getItem('fabrix_categories');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return ["Home Decor", "Household Goods", "Customized Items"];
+  });
+
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // Check auth session
+  useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setAuthLoading(false);
+      return;
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Sync products and categories
+  useEffect(() => {
+    localStorage.setItem('fabrix_products', JSON.stringify(products));
+  }, [products]);
+
+  useEffect(() => {
+    localStorage.setItem('fabrix_categories', JSON.stringify(categories));
+  }, [categories]);
 
   // Initialize theme from localStorage or default to dark
   const [theme, setTheme] = useState(() => {
@@ -41,7 +103,7 @@ export default function App() {
       const hash = window.location.hash;
       if (hash && hash.startsWith('#product-')) {
         const productId = hash.replace('#product-', '');
-        const product = PRODUCTS.find((p) => p.id === productId);
+        const product = products.find((p) => p.id === productId);
         if (product) {
           setSelectedProduct(product);
         }
@@ -52,7 +114,7 @@ export default function App() {
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [products]);
 
   const handleOpenProduct = (product) => {
     setSelectedProduct(product);
@@ -66,7 +128,7 @@ export default function App() {
   };
 
   // Filter & Sort Logic
-  const filteredProducts = PRODUCTS.filter((product) => {
+  const filteredProducts = products.filter((product) => {
     const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
     const matchesSearch = 
       product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -86,6 +148,43 @@ export default function App() {
     const message = `Hello Fabrix, I would like to inquire about placing a custom/bespoke order. Let's discuss design ideas and requirements!`;
     window.open(`https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
   };
+
+  if (isAdminOpen) {
+    if (authLoading) {
+      return (
+        <div className="min-h-screen bg-brand-charcoal text-white flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-gold" />
+        </div>
+      );
+    }
+
+    if (!user) {
+      return (
+        <AdminLogin 
+          onLoginSuccess={(usr) => setUser(usr)}
+          onClose={() => setIsAdminOpen(false)}
+        />
+      );
+    }
+
+    const handleLogout = async () => {
+      if (isSupabaseConfigured) {
+        await supabase.auth.signOut();
+      }
+      setUser(null);
+    };
+
+    return (
+      <AdminPanel 
+        products={products} 
+        setProducts={setProducts} 
+        categories={categories}
+        setCategories={setCategories}
+        onClose={() => setIsAdminOpen(false)} 
+        onLogout={handleLogout}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-transparent text-stone-900 dark:text-white transition-colors duration-450 selection:bg-brand-gold/30 selection:text-white">
@@ -121,6 +220,7 @@ export default function App() {
           sortBy={sortBy} 
           setSortBy={setSortBy}
           totalItems={sortedProducts.length}
+          categories={categories}
         />
 
         {/* Product Grid */}
@@ -167,7 +267,7 @@ export default function App() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-                {PRODUCTS.filter(p => selectedCategory === 'All' || p.category === selectedCategory)
+                {products.filter(p => selectedCategory === 'All' || p.category === selectedCategory)
                   .slice(0, 3)
                   .map((product) => (
                     <ProductCard 
@@ -235,6 +335,15 @@ export default function App() {
               </li>
               <li>
                 <a href="#contact" className="hover:text-brand-gold transition-colors duration-250">Reach Us</a>
+              </li>
+              <li>
+                <button 
+                  onClick={() => setIsAdminOpen(true)}
+                  className="hover:text-brand-gold transition-colors duration-250 cursor-pointer text-left focus:outline-none"
+                  id="admin-portal-link"
+                >
+                  Admin Portal
+                </button>
               </li>
             </ul>
           </div>
