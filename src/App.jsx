@@ -8,12 +8,19 @@ import WhatsAppButton from './components/WhatsAppButton';
 import { PRODUCTS } from './data/products';
 import { CONFIG } from './config';
 import { Mail, MapPin, Instagram, Heart, Compass } from 'lucide-react';
+import AdminPanel from './components/AdminPanel';
 
 export default function App() {
+  const [products, setProducts] = useState(() => {
+    const saved = localStorage.getItem('fabrix_products');
+    return saved ? JSON.parse(saved) : PRODUCTS;
+  });
+  
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('default');
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isAdminView, setIsAdminView] = useState(false);
 
   // Initialize theme from localStorage or default to dark
   const [theme, setTheme] = useState(() => {
@@ -35,24 +42,29 @@ export default function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Handle URL hash to deep link to specific products
+  // Handle URL hash to deep link to specific products and admin panel
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash;
-      if (hash && hash.startsWith('#product-')) {
-        const productId = hash.replace('#product-', '');
-        const product = PRODUCTS.find((p) => p.id === productId);
-        if (product) {
-          setSelectedProduct(product);
+      if (hash === '#admin') {
+        setIsAdminView(true);
+        setSelectedProduct(null);
+      } else {
+        setIsAdminView(false);
+        if (hash && hash.startsWith('#product-')) {
+          const productId = hash.replace('#product-', '');
+          const product = products.find((p) => p.id === productId);
+          if (product) {
+            setSelectedProduct(product);
+          }
         }
       }
     };
 
-    // Run on mount and when hash changes
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [products]);
 
   const handleOpenProduct = (product) => {
     setSelectedProduct(product);
@@ -66,7 +78,7 @@ export default function App() {
   };
 
   // Filter & Sort Logic
-  const filteredProducts = PRODUCTS.filter((product) => {
+  const filteredProducts = products.filter((product) => {
     const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
     const matchesSearch = 
       product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -83,11 +95,11 @@ export default function App() {
   });
 
   const getRecommendations = () => {
-    let pool = PRODUCTS;
+    let pool = products;
     if (selectedCategory !== 'All') {
-      pool = PRODUCTS.filter((p) => p.category === selectedCategory);
+      pool = products.filter((p) => p.category === selectedCategory);
     }
-    if (pool.length === 0) pool = PRODUCTS;
+    if (pool.length === 0) pool = products;
     return pool.slice(0, 3);
   };
 
@@ -106,6 +118,7 @@ export default function App() {
         theme={theme} 
         toggleTheme={toggleTheme} 
         onSelectProduct={handleOpenProduct}
+        products={products}
       />
 
       {/* Hero Section */}
@@ -270,7 +283,7 @@ export default function App() {
 
         {/* Bottom bar */}
         <div className="max-w-7xl mx-auto pt-8 border-t border-brand-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-stone-500 font-bold tracking-widest uppercase">
-          <p>© {new Date().getFullYear()} {CONFIG.STORE_NAME}. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {CONFIG.STORE_NAME}. All rights reserved. <a href="#admin" className="ml-2 hover:text-brand-gold transition-colors duration-250 font-semibold border-l border-brand-border/60 pl-2">Admin Login</a></p>
           <p className="flex items-center gap-1 font-normal text-stone-600">
             Made with <Heart className="w-3.5 h-3.5 text-brand-gold fill-current" /> for minimalist living
           </p>
@@ -282,6 +295,18 @@ export default function App() {
         <ProductModal 
           product={selectedProduct} 
           onClose={handleCloseProduct} 
+        />
+      )}
+
+      {/* Admin Panel Overlay */}
+      {isAdminView && (
+        <AdminPanel 
+          products={products} 
+          setProducts={setProducts} 
+          onClose={() => {
+            setIsAdminView(false);
+            window.history.pushState(null, null, ' ');
+          }}
         />
       )}
 

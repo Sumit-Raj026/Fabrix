@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Sun, Moon, ArrowRight } from 'lucide-react';
 import { CONFIG } from '../config';
-import { PRODUCTS } from '../data/products';
 
-export default function Header({ searchTerm, setSearchTerm, theme, toggleTheme, onSelectProduct }) {
+export default function Header({ searchTerm, setSearchTerm, theme, toggleTheme, onSelectProduct, products }) {
   const [isFocused, setIsFocused] = useState(false);
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
 
   // Filter products for suggestions (max 5)
   const suggestions = searchTerm.trim() 
-    ? PRODUCTS.filter((product) =>
+    ? products.filter((product) =>
         product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.id.toLowerCase().includes(searchTerm.toLowerCase())

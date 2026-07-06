@@ -10,4 +10,5 @@ export const CONFIG = {
   INSTAGRAM: "hello_fabrix",
   ADDRESS: "Opposite to TCP Gate No 4,Defence Colony,Hissar,Haryana 125044",
   DEFAULT_WELCOME_MESSAGE: "Hello Fabrix! I'm browsing your catalog and would love to know more about your collections.",
+  ADMIN_PASSCODE: "admin123",
 };
