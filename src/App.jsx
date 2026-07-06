@@ -7,20 +7,13 @@ import ProductModal from './components/ProductModal';
 import WhatsAppButton from './components/WhatsAppButton';
 import { PRODUCTS } from './data/products';
 import { CONFIG } from './config';
-import { Mail, MapPin, Instagram, Heart, Compass } from 'lucide-react';
-import AdminPanel from './components/AdminPanel';
+import { Mail, MapPin, Instagram, Heart } from 'lucide-react';
 
 export default function App() {
-  const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem('fabrix_products');
-    return saved ? JSON.parse(saved) : PRODUCTS;
-  });
-  
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('default');
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [isAdminView, setIsAdminView] = useState(false);
 
   // Initialize theme from localStorage or default to dark
   const [theme, setTheme] = useState(() => {
@@ -42,29 +35,24 @@ export default function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Handle URL hash to deep link to specific products and admin panel
+  // Handle URL hash to deep link to specific products
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash;
-      if (hash === '#admin') {
-        setIsAdminView(true);
-        setSelectedProduct(null);
-      } else {
-        setIsAdminView(false);
-        if (hash && hash.startsWith('#product-')) {
-          const productId = hash.replace('#product-', '');
-          const product = products.find((p) => p.id === productId);
-          if (product) {
-            setSelectedProduct(product);
-          }
+      if (hash && hash.startsWith('#product-')) {
+        const productId = hash.replace('#product-', '');
+        const product = PRODUCTS.find((p) => p.id === productId);
+        if (product) {
+          setSelectedProduct(product);
         }
       }
     };
 
+    // Run on mount and when hash changes
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [products]);
+  }, []);
 
   const handleOpenProduct = (product) => {
     setSelectedProduct(product);
@@ -78,7 +66,7 @@ export default function App() {
   };
 
   // Filter & Sort Logic
-  const filteredProducts = products.filter((product) => {
+  const filteredProducts = PRODUCTS.filter((product) => {
     const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
     const matchesSearch = 
       product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -93,15 +81,6 @@ export default function App() {
     if (sortBy === 'name-asc') return a.title.localeCompare(b.title);
     return 0; // Default/Featured sorting
   });
-
-  const getRecommendations = () => {
-    let pool = products;
-    if (selectedCategory !== 'All') {
-      pool = products.filter((p) => p.category === selectedCategory);
-    }
-    if (pool.length === 0) pool = products;
-    return pool.slice(0, 3);
-  };
 
   const handleCustomOrderClick = () => {
     const message = `Hello Fabrix, I would like to inquire about placing a custom/bespoke order. Let's discuss design ideas and requirements!`;
@@ -118,7 +97,6 @@ export default function App() {
         theme={theme} 
         toggleTheme={toggleTheme} 
         onSelectProduct={handleOpenProduct}
-        products={products}
       />
 
       {/* Hero Section */}
@@ -157,45 +135,48 @@ export default function App() {
             ))}
           </div>
         ) : (
-          <div className="py-12 animate-fade-in">
-            {/* Not Found Card */}
-            <div className="text-center py-16 px-4 border border-dashed border-brand-border rounded-sm bg-brand-stone/30 mb-16 max-w-2xl mx-auto">
-              <div className="w-12 h-12 rounded-full bg-brand-gold/10 flex items-center justify-center mx-auto mb-4 border border-brand-gold/20">
-                <Compass className="w-6 h-6 text-brand-gold" />
-              </div>
-              <h3 className="font-serif text-lg font-light text-stone-900 dark:text-white mb-2 transition-colors duration-400">
+          <div className="py-12">
+            {/* Product Not Found Box */}
+            <div className="text-center py-16 border border-brand-border rounded-sm bg-brand-stone/40 max-w-2xl mx-auto mb-16 shadow-sm">
+              <span className="text-[10px] font-bold tracking-[0.3em] text-brand-gold uppercase block mb-3">
+                No Matches
+              </span>
+              <h3 className="font-serif text-xl font-light text-stone-905 dark:text-white mb-4 transition-colors duration-400">
                 Product Not Found
               </h3>
-              <p className="text-stone-500 dark:text-stone-400 font-light text-xs max-w-md mx-auto leading-relaxed mb-6 transition-colors duration-400">
-                We couldn't find any items matching "{searchTerm}" {selectedCategory !== 'All' ? `in the ${selectedCategory} category` : ''}.
+              <p className="text-xs text-stone-500 dark:text-stone-400 font-light max-w-md mx-auto leading-relaxed mb-8 px-4 transition-colors duration-400">
+                We couldn't find any products matching your search for <strong className="text-stone-900 dark:text-white font-medium">"{searchTerm}"</strong>. Try checking your spelling or selecting a different category.
               </p>
               <button 
                 onClick={() => { setSearchTerm(''); setSelectedCategory('All'); }}
-                className="px-6 py-3 bg-brand-stone border border-brand-border text-stone-900 dark:text-white hover:border-brand-gold hover:text-brand-gold text-xs font-bold tracking-widest uppercase transition-all duration-300 rounded-sm"
+                className="px-6 py-3 bg-brand-gold text-brand-charcoal text-xs font-bold tracking-widest uppercase hover:bg-brand-gold-hover transition-colors duration-300 rounded-sm shadow-md"
               >
-                Reset Search Filters
+                Clear Search
               </button>
             </div>
 
-            {/* Recommendations Grid */}
+            {/* Related Suggestions Grid */}
             <div className="border-t border-brand-border/60 pt-16">
               <div className="text-center mb-10">
-                <span className="text-[9px] font-bold text-brand-gold tracking-[0.3em] uppercase block mb-2">
-                  Suggestions For You
+                <span className="text-[9px] font-bold tracking-[0.25em] text-brand-gold uppercase block mb-2">
+                  Curated For You
                 </span>
-                <h3 className="font-serif text-2xl font-light text-stone-900 dark:text-white transition-colors duration-400">
-                  Recommended Creations
+                <h3 className="font-serif text-xl md:text-2xl font-light text-stone-900 dark:text-white transition-colors duration-400">
+                  Related Recommendations
                 </h3>
               </div>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-                {getRecommendations().map((product) => (
-                  <ProductCard 
-                    key={product.id} 
-                    product={product} 
-                    onOpen={handleOpenProduct} 
-                  />
-                ))}
+                {PRODUCTS.filter(p => selectedCategory === 'All' || p.category === selectedCategory)
+                  .slice(0, 3)
+                  .map((product) => (
+                    <ProductCard 
+                      key={product.id} 
+                      product={product} 
+                      onOpen={handleOpenProduct} 
+                    />
+                  ))
+                }
               </div>
             </div>
           </div>
@@ -283,7 +264,7 @@ export default function App() {
 
         {/* Bottom bar */}
         <div className="max-w-7xl mx-auto pt-8 border-t border-brand-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-stone-500 font-bold tracking-widest uppercase">
-          <p>© {new Date().getFullYear()} {CONFIG.STORE_NAME}. All rights reserved. <a href="#admin" className="ml-2 hover:text-brand-gold transition-colors duration-250 font-semibold border-l border-brand-border/60 pl-2">Admin Login</a></p>
+          <p>© {new Date().getFullYear()} {CONFIG.STORE_NAME}. All rights reserved.</p>
           <p className="flex items-center gap-1 font-normal text-stone-600">
             Made with <Heart className="w-3.5 h-3.5 text-brand-gold fill-current" /> for minimalist living
           </p>
@@ -295,18 +276,6 @@ export default function App() {
         <ProductModal 
           product={selectedProduct} 
           onClose={handleCloseProduct} 
-        />
-      )}
-
-      {/* Admin Panel Overlay */}
-      {isAdminView && (
-        <AdminPanel 
-          products={products} 
-          setProducts={setProducts} 
-          onClose={() => {
-            setIsAdminView(false);
-            window.history.pushState(null, null, ' ');
-          }}
         />
       )}
 
