@@ -3,7 +3,7 @@ import { Search, Sun, Moon, ArrowRight } from 'lucide-react';
 import { CONFIG } from '../config';
 import { PRODUCTS } from '../data/products';
 
-export default function Header({ searchTerm, setSearchTerm, theme, toggleTheme, onSelectProduct }) {
+export default function Header({ searchTerm, setSearchTerm, theme, toggleTheme, onSelectProduct, products = [] }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -20,12 +20,13 @@ export default function Header({ searchTerm, setSearchTerm, theme, toggleTheme, 
 
   // Filter recommendations based on search term
   const getSuggestions = () => {
+    const sourceProducts = products.length > 0 ? products : PRODUCTS;
     if (!searchTerm.trim()) {
       // Show default popular products when search is empty but focused
-      return PRODUCTS.slice(0, 3);
+      return sourceProducts.slice(0, 3);
     }
     const cleanSearch = searchTerm.toLowerCase().trim();
-    return PRODUCTS.filter(
+    return sourceProducts.filter(
       (p) =>
         p.title.toLowerCase().includes(cleanSearch) ||
         p.category.toLowerCase().includes(cleanSearch) ||

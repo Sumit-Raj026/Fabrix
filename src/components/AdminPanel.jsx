@@ -83,7 +83,7 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
   // Convert uploaded image to Base64
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
-    const maxSizeBytes = 3 * 1024 * 1024; // 3MB limit
+    const maxSizeBytes = 10 * 1024 * 1024; // 10MB hard ceiling
     
     files.forEach(file => {
       // Validate file type
@@ -94,13 +94,44 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
 
       // Validate file size
       if (file.size > maxSizeBytes) {
-        alert(`File "${file.name}" exceeds the 3MB size limit.`);
+        alert(`File "${file.name}" exceeds the 10MB limit.`);
         return;
       }
 
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormImages(prev => [...prev, reader.result]);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          // Downscale maintaining aspect ratio
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Compress to JPEG with 75% quality
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
+          setFormImages(prev => [...prev, compressedBase64]);
+        };
+        img.src = event.target.result;
       };
       reader.readAsDataURL(file);
     });

@@ -18,7 +18,7 @@ export default function ProductCard({ product, onOpen }) {
         onOpen(product);
       }}
       id={`product-card-${product.id.toLowerCase()}`}
-      className="group premium-card cursor-pointer flex flex-col bg-brand-stone border border-brand-border overflow-hidden rounded-sm block text-current no-underline"
+      className="group premium-card cursor-pointer flex flex-col bg-brand-stone border border-brand-border overflow-hidden rounded-sm text-current no-underline"
     >
       {/* Image Container with aspect ratio */}
       <div className="relative aspect-[4/5] bg-brand-charcoal overflow-hidden border-b border-brand-border/55">

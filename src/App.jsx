@@ -190,6 +190,7 @@ export default function App() {
         theme={theme} 
         toggleTheme={toggleTheme} 
         onSelectProduct={handleOpenProduct}
+        products={products}
       />
 
       {/* Hero Section */}
