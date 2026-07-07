@@ -54,9 +54,21 @@ export default function ProductCard({ product, onOpen }) {
           {product.title}
         </h3>
         <div className="flex items-center justify-between mt-auto pt-4 border-t border-brand-border/60">
-          <span className="text-sm font-semibold text-brand-gold">
-            {formatPrice(product.price)}
-          </span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-sm font-semibold text-brand-gold">
+              {formatPrice(product.price)}
+            </span>
+            {product.originalPrice && Number(product.originalPrice) > Number(product.price) && (
+              <>
+                <span className="text-xs text-stone-500 line-through font-normal">
+                  {formatPrice(product.originalPrice)}
+                </span>
+                <span className="text-[9px] font-bold text-rose-500 bg-rose-500/10 px-1 py-0.5 rounded-sm tracking-wide whitespace-nowrap">
+                  {Math.round(((Number(product.originalPrice) - Number(product.price)) / Number(product.originalPrice)) * 100)}% OFF
+                </span>
+              </>
+            )}
+          </div>
           <span className="text-[10px] font-bold tracking-widest text-stone-400 uppercase flex items-center gap-1 group-hover:gap-2 group-hover:text-brand-gold transition-all duration-300">
             Details <ArrowRight className="w-3.5 h-3.5" />
           </span>

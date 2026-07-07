@@ -18,6 +18,7 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
   const [formTitle, setFormTitle] = useState('');
   const [formCategory, setFormCategory] = useState('');
   const [formPrice, setFormPrice] = useState(0);
+  const [formOriginalPrice, setFormOriginalPrice] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formDetails, setFormDetails] = useState(['']);
   const [formImages, setFormImages] = useState([]);
@@ -39,6 +40,7 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
       setFormTitle(product.title);
       setFormCategory(product.category);
       setFormPrice(product.price);
+      setFormOriginalPrice(product.originalPrice || '');
       setFormDescription(product.description);
       setFormDetails([...product.details]);
       setFormImages([...product.images]);
@@ -52,6 +54,7 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
       setFormTitle('');
       setFormCategory(localCategories[0] || '');
       setFormPrice(0);
+      setFormOriginalPrice('');
       setFormDescription('');
       setFormDetails(['']);
       setFormImages([]);
@@ -110,6 +113,7 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
       title: formTitle.trim(),
       category: formCategory,
       price: Number(formPrice),
+      originalPrice: formOriginalPrice ? Number(formOriginalPrice) : null,
       description: formDescription.trim(),
       details: filteredDetails.length > 0 ? filteredDetails : ["Standard specifications"],
       images: formImages.length > 0 ? formImages : ["/images/vase_1.jpg"], // fallback cover
@@ -406,8 +410,15 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
                             </span>
                           </td>
                           {/* Price */}
-                          <td className="py-4 px-6 text-brand-gold font-semibold">
-                            {formatPrice(p.price)}
+                          <td className="py-4 px-6 text-brand-gold font-semibold whitespace-nowrap">
+                            <div className="flex flex-col">
+                              <span>{formatPrice(p.price)}</span>
+                              {p.originalPrice && Number(p.originalPrice) > Number(p.price) && (
+                                <span className="text-[10px] text-stone-500 line-through font-normal">
+                                  {formatPrice(p.originalPrice)}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           {/* Customizable */}
                           <td className="py-4 px-6 text-center">
@@ -577,8 +588,8 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
                 </div>
               </div>
 
-              {/* Row 2: Category & Price */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Row 2: Category, Selling Price & Original Price */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label htmlFor="prod-cat" className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-2">
                     Category
@@ -597,7 +608,7 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
 
                 <div>
                   <label htmlFor="prod-price" className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-2">
-                    Price (INR) *
+                    Selling Price (INR) *
                   </label>
                   <input
                     type="number"
@@ -606,6 +617,22 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
                     min="0"
                     value={formPrice}
                     onChange={(e) => setFormPrice(Number(e.target.value))}
+                    className="w-full bg-brand-charcoal border border-brand-border focus:border-brand-gold text-xs tracking-wider rounded-sm p-3 outline-none text-white transition-all duration-300"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="prod-mrp" className="block text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-2 flex items-center justify-between">
+                    <span>Original Price (MRP)</span>
+                    <span className="text-[8px] font-light text-stone-500 lowercase">(optional)</span>
+                  </label>
+                  <input
+                    type="number"
+                    id="prod-mrp"
+                    min="0"
+                    value={formOriginalPrice}
+                    onChange={(e) => setFormOriginalPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                    placeholder="e.g. 2000"
                     className="w-full bg-brand-charcoal border border-brand-border focus:border-brand-gold text-xs tracking-wider rounded-sm p-3 outline-none text-white transition-all duration-300"
                   />
                 </div>

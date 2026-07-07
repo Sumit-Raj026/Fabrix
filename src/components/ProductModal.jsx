@@ -190,9 +190,21 @@ export default function ProductModal({ product, onClose }) {
               {product.title}
             </h2>
 
-            {/* Price */}
-            <div className="text-xl font-bold text-brand-gold mb-6">
-              {formatPrice(product.price)}
+            {/* Price & Discount */}
+            <div className="flex flex-wrap items-baseline gap-3 mb-6">
+              <span className="text-xl font-bold text-brand-gold">
+                {formatPrice(product.price)}
+              </span>
+              {product.originalPrice && Number(product.originalPrice) > Number(product.price) && (
+                <>
+                  <span className="text-sm text-stone-500 line-through font-normal">
+                    {formatPrice(product.originalPrice)}
+                  </span>
+                  <span className="text-xs font-bold text-rose-500 bg-rose-500/10 px-2 py-0.5 rounded-sm tracking-wide">
+                    {Math.round(((Number(product.originalPrice) - Number(product.price)) / Number(product.originalPrice)) * 100)}% OFF
+                  </span>
+                </>
+              )}
             </div>
 
             {/* Description */}

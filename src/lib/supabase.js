@@ -28,6 +28,7 @@ export const db = {
         title: item.title,
         category: item.category,
         price: Number(item.price),
+        originalPrice: item.original_price ? Number(item.original_price) : null,
         description: item.description,
         details: Array.isArray(item.details) ? item.details : JSON.parse(item.details || '[]'),
         images: Array.isArray(item.images) ? item.images : JSON.parse(item.images || '[]'),
@@ -50,6 +51,7 @@ export const db = {
       title: product.title,
       category: product.category,
       price: product.price,
+      original_price: product.originalPrice,
       description: product.description,
       details: product.details, // jsonb will accept array
       images: product.images,   // jsonb will accept array
