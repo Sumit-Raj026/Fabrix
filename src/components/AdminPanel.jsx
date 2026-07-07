@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { 
   LayoutDashboard, ShoppingBag, Tag, Plus, Edit2, Trash2, 
-  Image as ImageIcon, ArrowLeft, Check, X, Coins, Settings2, FilePlus, LogOut
+  Image as ImageIcon, ArrowLeft, Check, X, Coins, Settings2, FilePlus, LogOut, Upload, Loader
 } from 'lucide-react';
 import { db } from '../lib/supabase';
+import { uploadToCloudinary } from '../lib/cloudinary';
 export default function AdminPanel({ products, setProducts, categories, onClose, onLogout }) {
   const [activeTab, setActiveTab] = useState('products'); // dashboard, products, categories
   const [editingProduct, setEditingProduct] = useState(null); // null or product object
@@ -24,6 +25,8 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
   const [formImages, setFormImages] = useState([]);
   const [formCustomizable, setFormCustomizable] = useState(false);
   const [formCustomizationLabel, setFormCustomizationLabel] = useState('');
+  const [uploadProgress, setUploadProgress] = useState({}); // { index: 0-100 }
+  const [isUploading, setIsUploading] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -80,61 +83,50 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
     });
   };
 
-  // Convert uploaded image to Base64
-  const handleImageUpload = (e) => {
+  // Upload images to Cloudinary CDN — stores a short URL instead of Base64
+  const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
-    const maxSizeBytes = 10 * 1024 * 1024; // 10MB hard ceiling
-    
-    files.forEach(file => {
-      // Validate file type
+    if (!files.length) return;
+
+    const maxSizeBytes = 20 * 1024 * 1024; // 20MB Cloudinary free tier limit
+
+    // Validate all files first
+    for (const file of files) {
       if (!file.type.startsWith('image/')) {
-        alert(`File "${file.name}" is not a valid image file.`);
+        alert(`"${file.name}" is not a valid image file.`);
         return;
       }
-
-      // Validate file size
       if (file.size > maxSizeBytes) {
-        alert(`File "${file.name}" exceeds the 10MB limit.`);
+        alert(`"${file.name}" exceeds the 20MB limit.`);
         return;
       }
+    }
 
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 800;
-          const MAX_HEIGHT = 800;
-          let width = img.width;
-          let height = img.height;
+    setIsUploading(true);
+    const newProgress = {};
+    files.forEach((_, i) => { newProgress[i] = 0; });
+    setUploadProgress(newProgress);
 
-          // Downscale maintaining aspect ratio
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
-          }
+    const uploadedUrls = [];
 
-          canvas.width = width;
-          canvas.height = height;
+    for (let i = 0; i < files.length; i++) {
+      try {
+        const url = await uploadToCloudinary(files[i], (pct) => {
+          setUploadProgress(prev => ({ ...prev, [i]: pct }));
+        });
+        uploadedUrls.push(url);
+        setUploadProgress(prev => ({ ...prev, [i]: 100 }));
+      } catch (err) {
+        alert(`Failed to upload "${files[i].name}": ${err.message}`);
+      }
+    }
 
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
+    setFormImages(prev => [...prev, ...uploadedUrls]);
+    setIsUploading(false);
+    setUploadProgress({});
 
-          // Compress to JPEG with 75% quality
-          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
-          setFormImages(prev => [...prev, compressedBase64]);
-        };
-        img.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
+    // Reset file input so same file can be re-selected if needed
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleRemoveImage = (index) => {
@@ -780,14 +772,20 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-stone-400">
-                    Product Images (Base64 or URL Paths)
+                    Product Images — Uploaded to Cloudinary CDN
                   </label>
                   <button
                     type="button"
                     onClick={() => fileInputRef.current.click()}
-                    className="flex items-center gap-1.5 px-3 py-1.5 border border-brand-border hover:border-brand-gold hover:text-brand-gold text-[9px] font-bold tracking-widest text-stone-400 uppercase transition-all duration-300 rounded-sm"
+                    disabled={isUploading}
+                    className="flex items-center gap-1.5 px-3 py-1.5 border border-brand-border hover:border-brand-gold hover:text-brand-gold text-[9px] font-bold tracking-widest text-stone-400 uppercase transition-all duration-300 rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <ImageIcon className="w-3.5 h-3.5" /> Upload Image
+                    {isUploading ? (
+                      <Loader className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Upload className="w-3.5 h-3.5" />
+                    )}
+                    {isUploading ? 'Uploading...' : 'Upload Image'}
                   </button>
                   <input
                     type="file"
@@ -798,6 +796,26 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
                     className="hidden"
                   />
                 </div>
+
+                {/* Upload Progress Bars */}
+                {isUploading && Object.keys(uploadProgress).length > 0 && (
+                  <div className="mb-3 space-y-2">
+                    {Object.entries(uploadProgress).map(([idx, pct]) => (
+                      <div key={idx}>
+                        <div className="flex justify-between text-[9px] text-stone-400 mb-1">
+                          <span>Image {Number(idx) + 1}</span>
+                          <span>{pct}%</span>
+                        </div>
+                        <div className="h-1 bg-stone-800 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-brand-gold transition-all duration-300 rounded-full"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Previews grid */}
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 p-4 bg-brand-charcoal border border-brand-border rounded-sm">
@@ -814,9 +832,9 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
                       </button>
                     </div>
                   ))}
-                  {formImages.length === 0 && (
+                  {formImages.length === 0 && !isUploading && (
                     <div className="col-span-full py-6 text-center text-stone-600 text-xs italic font-light">
-                      No images added. Click "Upload Image" to add photos.
+                      No images added. Click "Upload Image" to upload photos to Cloudinary.
                     </div>
                   )}
                 </div>
@@ -835,10 +853,15 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
               </button>
               <button
                 type="submit"
-                className="flex items-center gap-2 px-6 py-3 bg-brand-gold text-brand-charcoal text-xs font-bold tracking-widest uppercase hover:bg-brand-gold-hover transition-colors duration-300 rounded-sm"
+                disabled={isUploading}
+                className="flex items-center gap-2 px-6 py-3 bg-brand-gold text-brand-charcoal text-xs font-bold tracking-widest uppercase hover:bg-brand-gold-hover transition-colors duration-300 rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Check className="w-4 h-4" />
-                Save Changes
+                {isUploading ? (
+                  <Loader className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Check className="w-4 h-4" />
+                )}
+                {isUploading ? 'Uploading Images...' : 'Save Changes'}
               </button>
             </div>
           </form>
