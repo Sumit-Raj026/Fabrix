@@ -34,7 +34,7 @@ export default function App() {
   // Fetch live products from Supabase database on mount
   useEffect(() => {
     db.getProducts().then((dbProducts) => {
-      if (dbProducts && dbProducts.length > 0) {
+      if (dbProducts !== null && Array.isArray(dbProducts)) {
         setProducts(dbProducts);
       }
     });
@@ -231,24 +231,39 @@ export default function App() {
           </div>
         ) : (
           <div className="py-12">
-            {/* Product Not Found Box */}
-            <div className="text-center py-16 border border-brand-border rounded-sm bg-brand-stone/40 max-w-2xl mx-auto mb-16 shadow-sm">
-              <span className="text-[10px] font-bold tracking-[0.3em] text-brand-gold uppercase block mb-3">
-                No Matches
-              </span>
-              <h3 className="font-serif text-xl font-light text-stone-905 dark:text-white mb-4 transition-colors duration-400">
-                Product Not Found
-              </h3>
-              <p className="text-xs text-stone-500 dark:text-stone-400 font-light max-w-md mx-auto leading-relaxed mb-8 px-4 transition-colors duration-400">
-                We couldn't find any products matching your search for <strong className="text-stone-900 dark:text-white font-medium">"{searchTerm}"</strong>. Try checking your spelling or selecting a different category.
-              </p>
-              <button 
-                onClick={() => { setSearchTerm(''); setSelectedCategory('All'); }}
-                className="px-6 py-3 bg-brand-gold text-brand-charcoal text-xs font-bold tracking-widest uppercase hover:bg-brand-gold-hover transition-colors duration-300 rounded-sm shadow-md"
-              >
-                Clear Search
-              </button>
-            </div>
+            {searchTerm ? (
+              /* Product Not Found Box */
+              <div className="text-center py-16 border border-brand-border rounded-sm bg-brand-stone/40 max-w-2xl mx-auto mb-16 shadow-sm">
+                <span className="text-[10px] font-bold tracking-[0.3em] text-brand-gold uppercase block mb-3">
+                  No Matches
+                </span>
+                <h3 className="font-serif text-xl font-light text-stone-905 dark:text-white mb-4 transition-colors duration-400">
+                  Product Not Found
+                </h3>
+                <p className="text-xs text-stone-500 dark:text-stone-400 font-light max-w-md mx-auto leading-relaxed mb-8 px-4 transition-colors duration-400">
+                  We couldn't find any products matching your search for <strong className="text-stone-900 dark:text-white font-medium">"{searchTerm}"</strong>. Try checking your spelling or selecting a different category.
+                </p>
+                <button 
+                  onClick={() => { setSearchTerm(''); setSelectedCategory('All'); }}
+                  className="px-6 py-3 bg-brand-gold text-brand-charcoal text-xs font-bold tracking-widest uppercase hover:bg-brand-gold-hover transition-colors duration-300 rounded-sm shadow-md"
+                >
+                  Clear Search
+                </button>
+              </div>
+            ) : (
+              /* Empty Catalog Box */
+              <div className="text-center py-16 border border-brand-border rounded-sm bg-brand-stone/40 max-w-2xl mx-auto mb-16 shadow-sm">
+                <span className="text-[10px] font-bold tracking-[0.3em] text-brand-gold uppercase block mb-3">
+                  Catalog Empty
+                </span>
+                <h3 className="font-serif text-xl font-light text-stone-905 dark:text-white mb-4 transition-colors duration-400">
+                  No Products Found
+                </h3>
+                <p className="text-xs text-stone-500 dark:text-stone-400 font-light max-w-md mx-auto leading-relaxed px-4 transition-colors duration-400">
+                  There are no products in the catalog yet. Go to the footer and click <strong>Admin Portal</strong> to add items!
+                </p>
+              </div>
+            )}
 
             {/* Related Suggestions Grid */}
             <div className="border-t border-brand-border/60 pt-16">
