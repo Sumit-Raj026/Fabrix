@@ -22,25 +22,21 @@ export default function App() {
   const [dbLoading, setDbLoading] = useState(true);
 
   // Fetch live products from Supabase database on mount
+  // Always fetch fresh — never show stale localStorage data
   useEffect(() => {
+    // Clear any stale cached products from previous versions
+    localStorage.removeItem('fabrix_products');
+
     db.getProducts().then((dbProducts) => {
       if (dbProducts !== null && Array.isArray(dbProducts)) {
         setProducts(dbProducts);
-        // Synchronize local cache with latest database truth
-        localStorage.setItem('fabrix_products', JSON.stringify(dbProducts));
       } else {
-        // Fallback to cache or defaults only on network/DB connection failure
-        const saved = localStorage.getItem('fabrix_products');
-        if (saved) {
-          try {
-            setProducts(JSON.parse(saved));
-          } catch (e) {
-            setProducts(PRODUCTS);
-          }
-        } else {
-          setProducts(PRODUCTS);
-        }
+        // Only fallback to static defaults if DB is completely unreachable
+        setProducts(PRODUCTS);
       }
+      setDbLoading(false);
+    }).catch(() => {
+      setProducts(PRODUCTS);
       setDbLoading(false);
     });
   }, []);
@@ -72,10 +68,9 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Sync products cache to localStorage
-  useEffect(() => {
-    localStorage.setItem('fabrix_products', JSON.stringify(products));
-  }, [products]);
+  // NOTE: We intentionally do NOT cache products to localStorage anymore.
+  // The app shows a skeleton loader and fetches live from Supabase on every visit.
+  // This prevents stale/deleted products from ever being shown to users.
 
   // Initialize theme from localStorage or default to dark
   const [theme, setTheme] = useState(() => {
