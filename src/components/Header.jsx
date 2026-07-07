@@ -104,10 +104,14 @@ export default function Header({ searchTerm, setSearchTerm, theme, toggleTheme, 
               <div className="max-h-[300px] overflow-y-auto">
                 {suggestions.length > 0 ? (
                   suggestions.map((product) => (
-                    <button
+                    <a
                       key={product.id}
-                      onClick={() => handleSuggestionClick(product)}
-                      className="w-full flex items-center gap-3 p-3 hover:bg-brand-stone-hover border-b border-brand-border/40 last:border-b-0 transition-colors duration-200 text-left"
+                      href={`#product-${product.id}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleSuggestionClick(product);
+                      }}
+                      className="w-full flex items-center gap-3 p-3 hover:bg-brand-stone-hover border-b border-brand-border/40 last:border-b-0 transition-colors duration-200 text-left block text-current no-underline"
                     >
                       <img
                         src={product.images[0]}
@@ -130,7 +134,7 @@ export default function Header({ searchTerm, setSearchTerm, theme, toggleTheme, 
                         </span>
                       </div>
                       <ArrowRight className="w-3.5 h-3.5 text-stone-400 dark:text-stone-600 flex-shrink-0" />
-                    </button>
+                    </a>
                   ))
                 ) : (
                   <div className="p-5 text-center text-xs text-stone-500 font-light italic">

@@ -1,0 +1,6 @@
+# robots.txt for Fabrix
+User-agent: *
+Allow: /
+
+# Sitemap URL
+Sitemap: https://hellofabrix.com/sitemap.xml

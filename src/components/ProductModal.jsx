@@ -164,7 +164,7 @@ export default function ProductModal({ product, onClose }) {
                       : 'border-transparent opacity-50 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt="thumbnail" className="w-full h-full object-cover" />
+                  <img src={img} alt={`${product.title} thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>
