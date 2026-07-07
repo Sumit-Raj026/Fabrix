@@ -83,7 +83,21 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
   // Convert uploaded image to Base64
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
+    const maxSizeBytes = 3 * 1024 * 1024; // 3MB limit
+    
     files.forEach(file => {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert(`File "${file.name}" is not a valid image file.`);
+        return;
+      }
+
+      // Validate file size
+      if (file.size > maxSizeBytes) {
+        alert(`File "${file.name}" exceeds the 3MB size limit.`);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormImages(prev => [...prev, reader.result]);
