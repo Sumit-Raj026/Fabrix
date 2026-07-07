@@ -18,25 +18,30 @@ export default function App() {
   const [sortBy, setSortBy] = useState('default');
   const [selectedProduct, setSelectedProduct] = useState(null);
   
-  // Initialize dynamic products state from localStorage (cache) or default static database
-  const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem('fabrix_products');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return PRODUCTS;
-  });
+  const [products, setProducts] = useState([]);
+  const [dbLoading, setDbLoading] = useState(true);
 
   // Fetch live products from Supabase database on mount
   useEffect(() => {
     db.getProducts().then((dbProducts) => {
       if (dbProducts !== null && Array.isArray(dbProducts)) {
         setProducts(dbProducts);
+        // Synchronize local cache with latest database truth
+        localStorage.setItem('fabrix_products', JSON.stringify(dbProducts));
+      } else {
+        // Fallback to cache or defaults only on network/DB connection failure
+        const saved = localStorage.getItem('fabrix_products');
+        if (saved) {
+          try {
+            setProducts(JSON.parse(saved));
+          } catch (e) {
+            setProducts(PRODUCTS);
+          }
+        } else {
+          setProducts(PRODUCTS);
+        }
       }
+      setDbLoading(false);
     });
   }, []);
 
@@ -218,8 +223,19 @@ export default function App() {
           categories={categories}
         />
 
-        {/* Product Grid */}
-        {sortedProducts.length > 0 ? (
+        {/* Product Grid / Skeletal Loaders */}
+        {dbLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 py-12">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="flex flex-col bg-brand-stone/40 border border-brand-border/45 rounded-sm p-6 space-y-4 animate-pulse">
+                <div className="aspect-[4/5] bg-stone-900/10 dark:bg-stone-800/10 rounded-sm w-full" />
+                <div className="h-4 bg-stone-900/10 dark:bg-stone-800/10 rounded w-1/4" />
+                <div className="h-6 bg-stone-900/10 dark:bg-stone-800/10 rounded w-3/4" />
+                <div className="h-10 bg-stone-900/10 dark:bg-stone-800/10 rounded w-full pt-4 border-t border-brand-border/20" />
+              </div>
+            ))}
+          </div>
+        ) : sortedProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 py-12">
             {sortedProducts.map((product) => (
               <ProductCard 
