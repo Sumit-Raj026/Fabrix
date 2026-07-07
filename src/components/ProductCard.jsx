@@ -23,10 +23,11 @@ export default function ProductCard({ product, onOpen }) {
       {/* Image Container with aspect ratio */}
       <div className="relative aspect-[4/5] bg-brand-charcoal overflow-hidden border-b border-brand-border/55">
         <img 
-          src={product.images[0]} 
+          src={product.images?.[0] || ''} 
           alt={product.title} 
           className="w-full h-full object-cover product-card-img"
           loading="lazy"
+          onError={(e) => { e.target.style.display = 'none'; }}
         />
 
         {/* Customization Badge */}

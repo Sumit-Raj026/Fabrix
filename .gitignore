@@ -24,3 +24,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Diagnostic / scratch scripts (may contain credentials)
+scratch/

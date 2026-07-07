@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
 import { 
   LayoutDashboard, ShoppingBag, Tag, Plus, Edit2, Trash2, 
-  Image as ImageIcon, ArrowLeft, Check, X, Coins, Settings2, FilePlus, LogOut, Upload, Loader
+  Image as ImageIcon, ArrowLeft, Check, X, Coins, Settings2, FilePlus, LogOut, Upload, Loader, Package
 } from 'lucide-react';
 import { db } from '../lib/supabase';
 import { uploadToCloudinary } from '../lib/cloudinary';
-export default function AdminPanel({ products, setProducts, categories, onClose, onLogout }) {
+import InventoryPanel from './InventoryPanel';
+export default function AdminPanel({ products, setProducts, categories, user, onClose, onLogout }) {
   const [activeTab, setActiveTab] = useState('products'); // dashboard, products, categories
   const [editingProduct, setEditingProduct] = useState(null); // null or product object
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -297,6 +298,18 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
             <Tag className="w-4 h-4" />
             Categories ({totalCategories})
           </button>
+
+          <button
+            onClick={() => setActiveTab('inventory')}
+            className={`flex-1 lg:flex-initial flex items-center justify-center lg:justify-start gap-3 px-5 py-4 rounded-sm text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+              activeTab === 'inventory'
+                ? 'bg-brand-gold text-brand-charcoal shadow-lg shadow-brand-gold/10'
+                : 'text-stone-400 hover:text-white hover:bg-stone-900/50'
+            }`}
+          >
+            <Package className="w-4 h-4" />
+            Raw Materials
+          </button>
         </aside>
 
         {/* Content Panel */}
@@ -555,6 +568,11 @@ export default function AdminPanel({ products, setProducts, categories, onClose,
               </div>
 
             </div>
+          )}
+
+          {/* TAB 4: RAW MATERIALS INVENTORY */}
+          {activeTab === 'inventory' && (
+            <InventoryPanel user={user} />
           )}
 
         </main>

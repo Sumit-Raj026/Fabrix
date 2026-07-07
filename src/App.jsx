@@ -93,23 +93,26 @@ export default function App() {
   };
 
   // Handle URL hash to deep link to specific products
+  // Use a ref so we don't re-register the listener on every products update
+  const productsRef = React.useRef(products);
+  useEffect(() => { productsRef.current = products; }, [products]);
+
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash;
       if (hash && hash.startsWith('#product-')) {
         const productId = hash.replace('#product-', '');
-        const product = products.find((p) => p.id === productId);
+        const product = productsRef.current.find((p) => p.id === productId);
         if (product) {
           setSelectedProduct(product);
         }
       }
     };
 
-    // Run on mount and when hash changes
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [products]);
+  }, []); // Only register once
 
   const handleOpenProduct = (product) => {
     setSelectedProduct(product);
@@ -174,6 +177,7 @@ export default function App() {
         products={products} 
         setProducts={setProducts} 
         categories={categories}
+        user={user}
         onClose={() => setIsAdminOpen(false)} 
         onLogout={handleLogout}
       />
