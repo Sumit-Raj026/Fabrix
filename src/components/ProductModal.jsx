@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Send, Award, ChevronLeft, ChevronRight } from 'lucide-react';
+import FocusTrap from 'focus-trap-react';
 import { CONFIG } from '../config';
 
 export default function ProductModal({ product, onClose }) {
@@ -94,13 +95,16 @@ export default function ProductModal({ product, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-charcoal/80 backdrop-blur-md transition-all duration-300">
-      
-      {/* Backdrop Close Click area */}
-      <div className="absolute inset-0 cursor-default" onClick={onClose}></div>
+    <FocusTrap>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        {/* Backdrop */}
+        <div className="absolute inset-0 bg-brand-charcoal/90 backdrop-blur-md transition-opacity duration-400"></div>
 
-      {/* Modal Container */}
-      <div className="relative w-full max-w-5xl bg-brand-stone border border-brand-border shadow-2xl rounded-sm overflow-hidden flex flex-col md:flex-row z-10 max-h-[90vh] md:max-h-none overflow-y-auto md:overflow-visible animate-scale-in">
+        {/* Clickable overlay to close */}
+        <div className="absolute inset-0 cursor-default" onClick={onClose}></div>
+
+        {/* Modal Container */}
+        <div className="relative w-full max-w-5xl bg-brand-stone border border-brand-border shadow-2xl rounded-sm overflow-hidden flex flex-col md:flex-row z-10 max-h-[90vh] md:max-h-none overflow-y-auto md:overflow-visible animate-scale-in">
         
         {/* Close Button */}
         <button 
@@ -186,7 +190,7 @@ export default function ProductModal({ product, onClose }) {
             </div>
 
             {/* Title */}
-            <h2 className="font-serif text-2xl md:text-3xl font-light text-stone-900 dark:text-white leading-tight mb-4 transition-colors duration-400">
+            <h2 id="modal-title" className="font-serif text-2xl md:text-3xl font-light text-stone-900 dark:text-white leading-tight mb-4 transition-colors duration-400">
               {product.title}
             </h2>
 
@@ -278,8 +282,8 @@ export default function ProductModal({ product, onClose }) {
             </form>
           </div>
         </div>
-
       </div>
-    </div>
+      </div>
+    </FocusTrap>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { LogIn, Key, HelpCircle, ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
-import { CONFIG } from '../config';
+import { CONFIG } from '../../config';
 
 export default function AdminLogin({ onLoginSuccess, onClose }) {
   const [email, setEmail] = useState('');

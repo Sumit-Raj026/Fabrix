@@ -3,7 +3,7 @@ import {
   Package, Plus, Edit, Trash2, ArrowUpRight, ArrowDownRight, 
   Search, AlertTriangle, FileSpreadsheet, History, X, Check, Loader2 
 } from 'lucide-react';
-import { inventory } from '../lib/inventory';
+import { inventory } from '../../lib/inventory';
 
 export default function InventoryPanel({ user }) {
   const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, materials, transactions, history

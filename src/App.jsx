@@ -1,421 +1,171 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import Header from './components/Header';
-import Hero from './components/Hero';
-import Filters from './components/Filters';
-import ProductCard from './components/ProductCard';
 import ProductModal from './components/ProductModal';
-import AdminPanel from './components/AdminPanel';
-import AdminLogin from './components/AdminLogin';
 import WhatsAppButton from './components/WhatsAppButton';
-import { PRODUCTS } from './data/products';
+import B2BInquiryModal from './components/B2BInquiryModal';
+import AppRoutes from './routes/AppRoutes';
+
 import { CONFIG } from './config';
-import { supabase, isSupabaseConfigured, db } from './lib/supabase';
-import { Mail, MapPin, Instagram, Heart, Loader2 } from 'lucide-react';
+import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { Mail, MapPin, Instagram, Heart } from 'lucide-react';
+import { useProducts } from './hooks/useProducts';
 
 export default function App() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('default');
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isB2BOpen, setIsB2BOpen] = useState(false);
   
-  const [products, setProducts] = useState([]);
-  const [dbLoading, setDbLoading] = useState(true);
+  const { data: products = [], isLoading: dbLoading } = useProducts();
 
-  // Fetch live products from Supabase database on mount
-  // Always fetch fresh — never show stale localStorage data
-  useEffect(() => {
-    // Clear any stale cached products from previous versions
-    localStorage.removeItem('fabrix_products');
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    db.getProducts().then((dbProducts) => {
-      if (dbProducts !== null && Array.isArray(dbProducts)) {
-        setProducts(dbProducts);
-      } else {
-        // Only fallback to static defaults if DB is completely unreachable
-        setProducts(PRODUCTS);
-      }
-      setDbLoading(false);
-    }).catch(() => {
-      setProducts(PRODUCTS);
-      setDbLoading(false);
-    });
-  }, []);
-
-  // Compute categories dynamically from the products database
-  const categories = Array.from(new Set(products.map((p) => p.category)));
-
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const categories = Array.from(new Set(products.filter(p => p && p.category).map((p) => p.category)));
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Check auth session
   useEffect(() => {
     if (!isSupabaseConfigured) {
       setAuthLoading(false);
       return;
     }
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setAuthLoading(false);
-    });
-
+    const checkUser = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setUser(session?.user ?? null);
+      } catch (err) {
+        console.error("Auth init error:", err);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    checkUser();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      setAuthLoading(false);
     });
-
     return () => subscription.unsubscribe();
   }, []);
 
-  // NOTE: We intentionally do NOT cache products to localStorage anymore.
-  // The app shows a skeleton loader and fetches live from Supabase on every visit.
-  // This prevents stale/deleted products from ever being shown to users.
-
-  // Initialize theme from localStorage or default to dark
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') || 'dark';
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('fabrix_theme');
+      if (savedTheme) return savedTheme;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
   });
 
-  // Sync theme with HTML class
   useEffect(() => {
     const root = window.document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    localStorage.setItem('theme', theme);
+    root.classList.remove('light', 'dark');
+    root.classList.add(theme);
+    localStorage.setItem('fabrix_theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Handle URL hash to deep link to specific products
-  // Use a ref so we don't re-register the listener on every products update
-  const productsRef = React.useRef(products);
-  useEffect(() => { productsRef.current = products; }, [products]);
-
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash;
-      if (hash && hash.startsWith('#product-')) {
-        const productId = hash.replace('#product-', '');
-        const product = productsRef.current.find((p) => p.id === productId);
-        if (product) {
-          setSelectedProduct(product);
-        }
-      }
-    };
-
-    handleHashChange();
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []); // Only register once
-
   const handleOpenProduct = (product) => {
-    setSelectedProduct(product);
-    window.history.pushState(null, null, `#product-${product.id}`);
+    navigate(`/product/${product.id}`);
   };
 
   const handleCloseProduct = () => {
-    setSelectedProduct(null);
-    // Remove the product hash, preserving scroll position
-    window.history.pushState(null, null, ' ');
+    navigate('/');
   };
 
-  // Filter & Sort Logic
-  const filteredProducts = products.filter((product) => {
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-    const matchesSearch = 
-      product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.id.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (sortBy === 'price-asc') return a.price - b.price;
-    if (sortBy === 'price-desc') return b.price - a.price;
-    if (sortBy === 'name-asc') return a.title.localeCompare(b.title);
-    return 0; // Default/Featured sorting
-  });
-
-  const handleCustomOrderClick = () => {
-    const message = `Hello Fabrix, I would like to inquire about placing a custom/bespoke order. Let's discuss design ideas and requirements!`;
-    window.open(`https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
-  };
-
-  if (isAdminOpen) {
-    if (authLoading) {
-      return (
-        <div className="min-h-screen bg-brand-charcoal text-white flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-brand-gold" />
-        </div>
-      );
-    }
-
-    if (!user) {
-      return (
-        <AdminLogin 
-          onLoginSuccess={(usr) => setUser(usr)}
-          onClose={() => setIsAdminOpen(false)}
-        />
-      );
-    }
-
-    const handleLogout = async () => {
-      if (isSupabaseConfigured) {
-        await supabase.auth.signOut();
-      }
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
       setUser(null);
-    };
-
-    return (
-      <AdminPanel 
-        products={products} 
-        setProducts={setProducts} 
-        categories={categories}
-        user={user}
-        onClose={() => setIsAdminOpen(false)} 
-        onLogout={handleLogout}
-      />
-    );
-  }
+    } catch (err) {
+      console.error("Error logging out:", err);
+    }
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-transparent text-stone-900 dark:text-white transition-colors duration-450 selection:bg-brand-gold/30 selection:text-white">
-      
-      {/* Header Navigation */}
-      <Header 
-        searchTerm={searchTerm} 
-        setSearchTerm={setSearchTerm} 
-        theme={theme} 
-        toggleTheme={toggleTheme} 
-        onSelectProduct={handleOpenProduct}
-        products={products}
-      />
-
-      {/* Hero Section */}
-      <Hero />
-
-      {/* Catalog Main section */}
-      <main id="catalog" className="flex-grow max-w-7xl mx-auto px-4 md:px-6 py-16 w-full relative overflow-hidden">
-        {/* Glow backdrop decorative */}
-        <div className="absolute top-[20%] left-[50%] -translate-x-1/2 w-[800px] h-[800px] bg-brand-gold/[0.03] rounded-full filter blur-3xl pointer-events-none -z-10" />
-
-        <h2 className="font-serif text-2xl md:text-3xl font-light text-stone-900 dark:text-white mb-2 tracking-wide transition-colors duration-400">
-          The Collection
-        </h2>
-        <p className="text-[10px] font-bold text-stone-400 dark:text-stone-500 tracking-[0.2em] mb-8 uppercase transition-colors duration-400">
-          Handcrafted quality, thoughtfully detailed
-        </p>
-
-        {/* Filter and Sorting Options */}
-        <Filters 
-          selectedCategory={selectedCategory} 
-          setSelectedCategory={setSelectedCategory} 
-          sortBy={sortBy} 
-          setSortBy={setSortBy}
-          totalItems={sortedProducts.length}
-          categories={categories}
-        />
-
-        {/* Product Grid / Skeletal Loaders */}
-        {dbLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 py-12">
-            {[1, 2, 3].map((n) => (
-              <div key={n} className="flex flex-col bg-brand-stone/40 border border-brand-border/45 rounded-sm p-6 space-y-4 animate-pulse">
-                <div className="aspect-[4/5] bg-stone-900/10 dark:bg-stone-800/10 rounded-sm w-full" />
-                <div className="h-4 bg-stone-900/10 dark:bg-stone-800/10 rounded w-1/4" />
-                <div className="h-6 bg-stone-900/10 dark:bg-stone-800/10 rounded w-3/4" />
-                <div className="h-10 bg-stone-900/10 dark:bg-stone-800/10 rounded w-full pt-4 border-t border-brand-border/20" />
-              </div>
-            ))}
-          </div>
-        ) : sortedProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 py-12">
-            {sortedProducts.map((product) => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
-                onOpen={handleOpenProduct} 
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="py-12">
-            {searchTerm ? (
-              /* Product Not Found Box */
-              <div className="text-center py-16 border border-brand-border rounded-sm bg-brand-stone/40 max-w-2xl mx-auto mb-16 shadow-sm">
-                <span className="text-[10px] font-bold tracking-[0.3em] text-brand-gold uppercase block mb-3">
-                  No Matches
-                </span>
-                <h3 className="font-serif text-xl font-light text-stone-905 dark:text-white mb-4 transition-colors duration-400">
-                  Product Not Found
-                </h3>
-                <p className="text-xs text-stone-500 dark:text-stone-400 font-light max-w-md mx-auto leading-relaxed mb-8 px-4 transition-colors duration-400">
-                  We couldn't find any products matching your search for <strong className="text-stone-900 dark:text-white font-medium">"{searchTerm}"</strong>. Try checking your spelling or selecting a different category.
-                </p>
-                <button 
-                  onClick={() => { setSearchTerm(''); setSelectedCategory('All'); }}
-                  className="px-6 py-3 bg-brand-gold text-brand-charcoal text-xs font-bold tracking-widest uppercase hover:bg-brand-gold-hover transition-colors duration-300 rounded-sm shadow-md"
-                >
-                  Clear Search
-                </button>
-              </div>
-            ) : (
-              /* Empty Catalog Box */
-              <div className="text-center py-16 border border-brand-border rounded-sm bg-brand-stone/40 max-w-2xl mx-auto mb-16 shadow-sm">
-                <span className="text-[10px] font-bold tracking-[0.3em] text-brand-gold uppercase block mb-3">
-                  Catalog Empty
-                </span>
-                <h3 className="font-serif text-xl font-light text-stone-905 dark:text-white mb-4 transition-colors duration-400">
-                  No Products Found
-                </h3>
-                <p className="text-xs text-stone-500 dark:text-stone-400 font-light max-w-md mx-auto leading-relaxed px-4 transition-colors duration-400">
-                  There are no products in the catalog yet. Go to the footer and click <strong>Admin Portal</strong> to add items!
-                </p>
-              </div>
-            )}
-
-            {/* Related Suggestions Grid */}
-            <div className="border-t border-brand-border/60 pt-16">
-              <div className="text-center mb-10">
-                <span className="text-[9px] font-bold tracking-[0.25em] text-brand-gold uppercase block mb-2">
-                  Curated For You
-                </span>
-                <h3 className="font-serif text-xl md:text-2xl font-light text-stone-900 dark:text-white transition-colors duration-400">
-                  Related Recommendations
-                </h3>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
-                {products.filter(p => selectedCategory === 'All' || p.category === selectedCategory)
-                  .slice(0, 3)
-                  .map((product) => (
-                    <ProductCard 
-                      key={product.id} 
-                      product={product} 
-                      onOpen={handleOpenProduct} 
-                    />
-                  ))
-                }
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Custom Section CTA */}
-        <section id="custom" className="my-20 bg-brand-stone border border-brand-border p-8 md:p-16 flex flex-col lg:flex-row items-center justify-between gap-8 rounded-sm relative overflow-hidden shadow-2xl transition-all duration-400">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-brand-gold/[0.04] rounded-full filter blur-2xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-brand-gold/[0.02] rounded-full filter blur-xl pointer-events-none" />
-          
-          <div className="max-w-2xl text-center lg:text-left relative z-10">
-            <span className="text-[10px] font-bold tracking-[0.3em] text-brand-gold uppercase block mb-3">
-              Bespoke Services
-            </span>
-            <h3 className="font-serif text-2xl md:text-3xl font-light text-stone-900 dark:text-white mb-4 leading-tight transition-colors duration-400">
-              Looking for something completely custom?
-            </h3>
-            <p className="text-stone-600 dark:text-stone-400 font-light text-xs md:text-sm leading-relaxed tracking-wide transition-colors duration-400">
-              Premium wall art, home décor, statues, lamps, personalized gifts, and custom 3D-printed creations—designed to bring elegance and individuality into every space
-            </p>
-          </div>
-          <button
-            onClick={handleCustomOrderClick}
-            className="w-full lg:w-auto px-8 py-4 bg-brand-gold text-brand-charcoal text-xs font-bold tracking-widest uppercase hover:bg-brand-gold-hover transition-colors duration-300 whitespace-nowrap btn-shimmer relative z-10 shadow-lg shadow-brand-gold/10"
-          >
-            Start Custom Order
-          </button>
-        </section>
-      </main>
-
-      {/* Footer Section */}
-      <footer id="contact" className="bg-[#0c0c0b] text-stone-400 py-20 px-4 md:px-6 border-t border-brand-border/60">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
-          
-          {/* Brand Info */}
-          <div className="md:col-span-2 space-y-4">
-            <span className="font-serif text-2xl font-bold tracking-[0.25em] text-white uppercase">
-              {CONFIG.STORE_NAME}
-            </span>
-            <p className="text-stone-500 font-light text-xs leading-relaxed max-w-sm tracking-wide">
-              We craft contemporary objects with an emphasis on minimalist design, clean lines, and natural materials. Elevating your home aesthetics, one item at a time.
-            </p>
-          </div>
-
-          {/* Quick links */}
-          <div className="space-y-4">
-            <h4 className="text-white text-[10px] font-bold uppercase tracking-[0.2em]">
-              Quick Links
-            </h4>
-            <ul className="space-y-2.5 text-xs font-light text-stone-400">
-              <li>
-                <a href="#catalog" className="hover:text-brand-gold transition-colors duration-250">Browse Catalog</a>
-              </li>
-              <li>
-                <a href="#custom" className="hover:text-brand-gold transition-colors duration-250">Custom Design</a>
-              </li>
-              <li>
-                <a href="#contact" className="hover:text-brand-gold transition-colors duration-250">Reach Us</a>
-              </li>
-              <li>
-                <button 
-                  onClick={() => setIsAdminOpen(true)}
-                  className="hover:text-brand-gold transition-colors duration-250 cursor-pointer text-left focus:outline-none"
-                  id="admin-portal-link"
-                >
-                  Admin Portal
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          {/* Contact details */}
-          <div className="space-y-4">
-            <h4 className="text-white text-[10px] font-bold uppercase tracking-[0.2em]">
-              Get in Touch
-            </h4>
-            <ul className="space-y-3.5 text-xs font-light text-stone-400">
-              <li className="flex items-center gap-2.5">
-                <MapPin className="w-4 h-4 text-brand-gold flex-shrink-0" />
-                <span>{CONFIG.ADDRESS}</span>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-brand-gold flex-shrink-0" />
-                <a href={`mailto:${CONFIG.EMAIL}`} className="hover:text-brand-gold transition-colors duration-250">{CONFIG.EMAIL}</a>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <Instagram className="w-4 h-4 text-brand-gold flex-shrink-0" />
-                <a href={`https://instagram.com/${CONFIG.INSTAGRAM}`} target="_blank" rel="noreferrer" className="hover:text-brand-gold transition-colors duration-250">@{CONFIG.INSTAGRAM}</a>
-              </li>
-            </ul>
-          </div>
-
-        </div>
-
-        {/* Bottom bar */}
-        <div className="max-w-7xl mx-auto pt-8 border-t border-brand-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-stone-500 font-bold tracking-widest uppercase">
-          <p>© {new Date().getFullYear()} {CONFIG.STORE_NAME}. All rights reserved.</p>
-          <p className="flex items-center gap-1 font-normal text-stone-600">
-            Made with <Heart className="w-3.5 h-3.5 text-brand-gold fill-current" /> for minimalist living
-          </p>
-        </div>
-      </footer>
-
-      {/* Detail Modal Overlay */}
-      {selectedProduct && (
-        <ProductModal 
-          product={selectedProduct} 
-          onClose={handleCloseProduct} 
+    <div className="min-h-screen bg-brand-stone dark:bg-brand-charcoal text-stone-900 dark:text-white flex flex-col font-sans transition-colors duration-400">
+      {!location.pathname.startsWith('/admin') && (
+        <Header 
+          theme={theme} 
+          toggleTheme={toggleTheme} 
+          setSearchTerm={setSearchTerm} 
+          searchTerm={searchTerm} 
         />
       )}
 
-      {/* Floating Sticky WhatsApp Button */}
-      <WhatsAppButton />
+      <main className={`flex-grow flex flex-col ${!location.pathname.startsWith('/admin') ? 'pt-16' : ''}`}>
+        <AppRoutes
+          products={products}
+          categories={categories}
+          dbLoading={dbLoading}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          searchTerm={searchTerm}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          handleOpenProduct={handleOpenProduct}
+          handleCloseProduct={handleCloseProduct}
+          handleCustomOrderClick={() => setIsB2BOpen(true)}
+          authLoading={authLoading}
+          user={user}
+          setUser={setUser}
+          handleLogout={handleLogout}
+        />
+      </main>
 
+      {/* Shared Footer across non-admin routes */}
+      {!location.pathname.startsWith('/admin') && (
+        <footer className="bg-stone-950 text-white pt-12 pb-8 px-4 md:px-6 mt-auto">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-10">
+            <div className="md:col-span-2 space-y-6">
+              <h3 className="font-serif text-2xl tracking-wide font-light">{CONFIG.STORE_NAME}</h3>
+              <p className="text-stone-400 text-xs font-light leading-relaxed max-w-sm">
+                We craft contemporary objects with an emphasis on minimalist design, clean lines, and natural materials. Elevating your home aesthetics, one item at a time.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="text-white text-[10px] font-bold uppercase tracking-[0.2em]">Quick Links</h4>
+              <ul className="space-y-3.5 text-xs font-light text-stone-400">
+                <li><Link to="/" className="hover:text-brand-gold transition-colors duration-250">Browse Catalog</Link></li>
+                <li><Link to="/wholesale" className="hover:text-brand-gold transition-colors duration-250">Custom Design</Link></li>
+                <li><Link to="/contact" className="hover:text-brand-gold transition-colors duration-250">Reach Us</Link></li>
+                <li><Link to="/admin" className="hover:text-brand-gold transition-colors duration-250">Admin Portal</Link></li>
+              </ul>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="text-white text-[10px] font-bold uppercase tracking-[0.2em]">Get in Touch</h4>
+              <ul className="space-y-3.5 text-xs font-light text-stone-400">
+                <li className="flex items-start gap-2.5"><MapPin className="w-4 h-4 text-brand-gold flex-shrink-0 mt-0.5" /><span>{CONFIG.ADDRESS}</span></li>
+                <li className="flex items-center gap-2.5"><Mail className="w-4 h-4 text-brand-gold flex-shrink-0" /><a href={`mailto:${CONFIG.EMAIL}`} className="hover:text-brand-gold transition-colors duration-250">{CONFIG.EMAIL}</a></li>
+                <li className="flex items-center gap-2.5"><Instagram className="w-4 h-4 text-brand-gold flex-shrink-0" /><a href={`https://instagram.com/${CONFIG.INSTAGRAM}`} target="_blank" rel="noreferrer" className="hover:text-brand-gold transition-colors duration-250">@{CONFIG.INSTAGRAM}</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="max-w-7xl mx-auto pt-8 border-t border-brand-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-stone-500 font-bold tracking-widest uppercase">
+            <p>© {new Date().getFullYear()} {CONFIG.STORE_NAME}. All rights reserved.</p>
+            <p className="flex items-center gap-1 font-normal text-stone-600">Made with <Heart className="w-3.5 h-3.5 text-brand-gold fill-current" /> for minimalist living</p>
+          </div>
+        </footer>
+      )}
+
+      {selectedProduct && (
+        <ProductModal 
+          product={selectedProduct} 
+          onClose={() => setSelectedProduct(null)} 
+        />
+      )}
+
+      <WhatsAppButton />
+      <B2BInquiryModal 
+        isOpen={isB2BOpen} 
+        onClose={() => setIsB2BOpen(false)} 
+      />
     </div>
   );
 }
