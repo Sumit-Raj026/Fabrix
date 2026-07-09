@@ -3,6 +3,22 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit2, Trash2, Image as ImageIcon, Check, X, Upload, Loader } from 'lucide-react';
 import { db } from '../../lib/supabase';
 import { uploadToCloudinary } from '../../lib/cloudinary';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import SortableProductRow from './SortableProductRow';
+import { useReorderProducts } from '../../hooks/useProducts';
 
 export default function ProductManagement({ products, categories }) {
   const queryClient = useQueryClient();
@@ -156,6 +172,34 @@ export default function ProductManagement({ products, categories }) {
     }).format(price);
   };
 
+  const reorderMutation = useReorderProducts();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    
+    if (active.id !== over.id) {
+      const oldIndex = products.findIndex((p) => p.id === active.id);
+      const newIndex = products.findIndex((p) => p.id === over.id);
+      
+      const newArray = arrayMove(products, oldIndex, newIndex);
+      
+      // Calculate new display orders
+      const updates = newArray.map((prod, index) => ({
+        id: prod.id,
+        display_order: index
+      }));
+      
+      reorderMutation.mutate(updates);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in relative">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -179,6 +223,7 @@ export default function ProductManagement({ products, categories }) {
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead className="bg-stone-950/80 text-[10px] uppercase font-bold tracking-widest text-stone-500">
                 <tr>
+                  <th className="px-4 py-4 w-10"></th>
                   <th className="px-6 py-4 font-bold">Product</th>
                   <th className="px-6 py-4 font-bold">Category</th>
                   <th className="px-6 py-4 font-bold">Price</th>
@@ -186,57 +231,32 @@ export default function ProductManagement({ products, categories }) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-border/60">
-                {products.length > 0 ? products.map((product) => (
-                  <tr key={product.id} className="hover:bg-brand-charcoal transition-colors duration-200 group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-sm bg-stone-900 border border-brand-border/50 overflow-hidden flex-shrink-0">
-                          {product.images?.[0] ? (
-                            <img src={product.images[0]} alt={product.title} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center"><ImageIcon className="w-4 h-4 text-stone-600" /></div>
-                          )}
-                        </div>
-                        <div>
-                          <div className="font-serif text-white tracking-wide group-hover:text-brand-gold transition-colors">{product.title}</div>
-                          <div className="text-[10px] text-stone-500 font-bold tracking-wider mt-1">{product.id}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-block px-2.5 py-1 bg-brand-charcoal border border-brand-border text-[10px] uppercase tracking-widest text-stone-400 rounded-sm">
-                        {product.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-stone-300 font-medium">
-                      {formatPrice(product.price)}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button 
-                          onClick={() => handleOpenForm(product)}
-                          className="p-2 text-stone-500 hover:text-brand-gold transition-colors duration-200"
-                          title="Edit"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteProduct(product.id)}
-                          className="p-2 text-stone-500 hover:text-rose-500 transition-colors duration-200"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr>
-                    <td colSpan="4" className="px-6 py-12 text-center text-stone-500 text-xs italic font-light">
-                      No products found. Add your first product to get started.
-                    </td>
-                  </tr>
-                )}
+                <DndContext 
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext 
+                    items={products.map(p => p.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {products.length > 0 ? products.map((product) => (
+                      <SortableProductRow 
+                        key={product.id} 
+                        product={product} 
+                        onEdit={handleOpenForm} 
+                        onDelete={handleDeleteProduct} 
+                        formatPrice={formatPrice} 
+                      />
+                    )) : (
+                      <tr>
+                        <td colSpan="5" className="px-6 py-12 text-center text-stone-500 text-xs italic font-light">
+                          No products found. Add your first product to get started.
+                        </td>
+                      </tr>
+                    )}
+                  </SortableContext>
+                </DndContext>
               </tbody>
             </table>
           </div>

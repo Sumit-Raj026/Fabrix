@@ -18,6 +18,7 @@ export const db = {
       const { data, error } = await supabase
         .from('products')
         .select('*')
+        .order('display_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: true });
       
       if (error) throw error;
@@ -38,6 +39,28 @@ export const db = {
     } catch (err) {
       console.error('Error fetching products from database:', err);
       return null; // Return null to signal fallback to static products
+    }
+  },
+
+  // Bulk update product display orders
+  async updateProductOrders(updates) {
+    if (!supabase) return false;
+    try {
+      const promises = updates.map(update => 
+        supabase
+          .from('products')
+          .update({ display_order: update.display_order })
+          .eq('id', update.id)
+      );
+      
+      const results = await Promise.all(promises);
+      const errors = results.filter(r => r.error).map(r => r.error);
+      
+      if (errors.length > 0) throw errors[0];
+      return true;
+    } catch (err) {
+      console.error('Error updating product orders:', err);
+      throw err;
     }
   },
 
