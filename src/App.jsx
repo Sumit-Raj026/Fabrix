@@ -131,8 +131,8 @@ export default function App() {
             <div className="space-y-4">
               <h4 className="text-white text-[10px] font-bold uppercase tracking-[0.2em]">Quick Links</h4>
               <ul className="space-y-3.5 text-xs font-light text-stone-400">
-                <li><Link to="/" className="hover:text-brand-gold transition-colors duration-250">Browse Catalog</Link></li>
-                <li><Link to="/wholesale" className="hover:text-brand-gold transition-colors duration-250">Custom Design</Link></li>
+                <li><a href="/#catalog" className="hover:text-brand-gold transition-colors duration-250">Browse Catalog</a></li>
+                <li><a href="/#custom" className="hover:text-brand-gold transition-colors duration-250">Custom Design</a></li>
                 <li><Link to="/contact" className="hover:text-brand-gold transition-colors duration-250">Reach Us</Link></li>
                 <li><Link to="/admin" className="hover:text-brand-gold transition-colors duration-250">Admin Portal</Link></li>
               </ul>
