@@ -56,7 +56,7 @@ export default function ProductDetailPage({ products = [], onBack, onOpenProduct
   const handleBuyWhatsApp = () => {
     const textMsg = `Hi Fabrix! I am interested in purchasing the product:\n\n*Product Name:* ${product.title}\n*Product SKU:* ${product.id}\n*Category:* ${product.category}\n*Price:* ${formatPrice(product.price)}${product.customizable && customText ? `\n*Customization Details:* ${customText}` : ''}\n\nPlease confirm availability and payment options.`;
     const encoded = encodeURIComponent(textMsg);
-    window.open(`https://wa.me/919876543210?text=${encoded}`, '_blank');
+    window.open(`https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encoded}`, '_blank');
   };
 
   // Get similar products
