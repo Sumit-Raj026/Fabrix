@@ -20,7 +20,7 @@ export async function uploadToCloudinary(fileOrBase64, onProgress = null) {
     // It's a Base64 data URL — convert to Blob then upload
     const blob = dataURLtoBlob(fileOrBase64);
     formData.append('file', blob, 'upload.jpg');
-  } else if (fileOrBase64 instanceof File) {
+  } else if (fileOrBase64 instanceof Blob || (typeof fileOrBase64 === 'object' && fileOrBase64 !== null)) {
     formData.append('file', fileOrBase64);
   } else {
     throw new Error('Invalid input: expected File or Base64 string');

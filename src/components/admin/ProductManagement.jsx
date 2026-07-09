@@ -90,16 +90,13 @@ export default function ProductManagement({ products, categories }) {
       const file = files[i];
       try {
         setUploadProgress(prev => ({ ...prev, [i]: 10 }));
-        const url = await uploadToCloudinary(file, (progressEvent) => {
-          if (progressEvent.total) {
-            const pct = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setUploadProgress(prev => ({ ...prev, [i]: pct }));
-          }
+        const url = await uploadToCloudinary(file, (pct) => {
+          setUploadProgress(prev => ({ ...prev, [i]: pct }));
         });
         uploadedUrls.push(url);
       } catch (err) {
         console.error("Upload failed for file", file.name, err);
-        alert(`Failed to upload ${file.name}`);
+        alert(`Failed to upload ${file.name}: ${err.message}`);
       }
     }
     if (uploadedUrls.length > 0) {
