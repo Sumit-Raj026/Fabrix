@@ -76,13 +76,13 @@ export default function ProductDetailPage({ products = [], onBack, onOpenProduct
         <meta property="twitter:description" content={product.description?.substring(0, 150)} />
         <meta property="twitter:image" content={currentImage} />
       </Helmet>
-      <div className="animate-fade-in space-y-6 pt-4 pb-8 px-6 md:px-12 lg:px-24 max-w-[1500px] mx-auto text-stone-900 dark:text-stone-150">
+      <div className="animate-fade-in space-y-6 pt-4 pb-8 px-6 md:px-12 lg:px-24 max-w-[1600px] mx-auto text-stone-900 dark:text-stone-150">
       
       {/* Main product display */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 lg:gap-20 items-start">
         
         {/* Left Side: Images Gallery */}
-        <div className="md:col-span-6 lg:col-span-5 relative md:sticky md:top-24 z-10 flex flex-col gap-6">
+        <div className="md:col-span-6 lg:col-span-6 2xl:col-span-7 relative md:sticky md:top-24 z-10 flex flex-col gap-6">
           
           {/* Back navigation */}
           <div>
@@ -143,7 +143,7 @@ export default function ProductDetailPage({ products = [], onBack, onOpenProduct
         </div>
 
         {/* Right Side: Information Panel */}
-        <div className="md:col-span-6 lg:col-span-7 space-y-8 lg:pl-8 md:mt-10">
+        <div className="md:col-span-6 lg:col-span-6 2xl:col-span-5 space-y-8 lg:pl-8 md:mt-10">
           <div className="space-y-4">
             <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.2em] uppercase">
               <span className="text-brand-gold">{product.category}</span>
@@ -211,7 +211,7 @@ export default function ProductDetailPage({ products = [], onBack, onOpenProduct
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 md:gap-10">
             {relatedProducts.map((p) => (
               <ProductCard 
                 key={p.id} 

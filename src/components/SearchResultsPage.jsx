@@ -34,7 +34,7 @@ export default function SearchResultsPage({ products, onSelectProduct }) {
   }, [products]);
 
   return (
-    <main className="flex-grow max-w-7xl mx-auto px-4 md:px-6 pt-16 pb-16 w-full animate-fade-in">
+    <main className="flex-grow max-w-[1600px] mx-auto px-4 md:px-6 pt-16 pb-16 w-full animate-fade-in">
       <Helmet><title>Search Results: "{query}" | {CONFIG.STORE_NAME}</title></Helmet>
       
       <div className="mb-12 border-b border-brand-border/40 pb-8">
@@ -51,7 +51,7 @@ export default function SearchResultsPage({ products, onSelectProduct }) {
       </div>
 
       {searchResults.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-x-6 gap-y-12">
           {searchResults.map((product) => (
             <ProductCard 
               key={product.id} 
@@ -77,7 +77,7 @@ export default function SearchResultsPage({ products, onSelectProduct }) {
           <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-stone-400 mb-8 flex items-center gap-4">
             Popular Right Now <span className="h-[1px] flex-grow bg-brand-border/40"></span>
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-x-6 gap-y-12">
             {popularProducts.map((product) => (
               <ProductCard 
                 key={product.id} 

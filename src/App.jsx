@@ -120,7 +120,7 @@ export default function App() {
       {/* Shared Footer across non-admin routes */}
       {!location.pathname.startsWith('/admin') && (
         <footer className="bg-stone-950 text-white pt-12 pb-8 px-4 md:px-6 mt-auto">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-10">
+          <div className="max-w-[1600px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-10">
             <div className="md:col-span-2 space-y-6">
               <h3 className="font-serif text-2xl tracking-wide font-light">{CONFIG.STORE_NAME}</h3>
               <p className="text-stone-400 text-xs font-light leading-relaxed max-w-sm">
@@ -147,7 +147,7 @@ export default function App() {
               </ul>
             </div>
           </div>
-          <div className="max-w-7xl mx-auto pt-8 border-t border-brand-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-stone-500 font-bold tracking-widest uppercase">
+          <div className="max-w-[1600px] mx-auto pt-8 border-t border-brand-border/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-stone-500 font-bold tracking-widest uppercase">
             <p>© {new Date().getFullYear()} {CONFIG.STORE_NAME}. All rights reserved.</p>
             <p className="flex items-center gap-1 font-normal text-stone-600">Made with <Heart className="w-3.5 h-3.5 text-brand-gold fill-current" /> for minimalist living</p>
           </div>

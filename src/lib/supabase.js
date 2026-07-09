@@ -15,16 +15,33 @@ export const db = {
   async getProducts() {
     if (!supabase) return [];
     try {
+      let queryData;
       const { data, error } = await supabase
         .from('products')
         .select('*')
         .order('display_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        // If display_order column doesn't exist yet, fallback to created_at
+        if (error.code === '42703' || error.message?.includes('display_order')) {
+          console.warn("display_order column missing, falling back to created_at sorting");
+          const fallback = await supabase
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: true });
+          
+          if (fallback.error) throw fallback.error;
+          queryData = fallback.data;
+        } else {
+          throw error;
+        }
+      } else {
+        queryData = data;
+      }
       
       // Map database schema columns back to frontend naming conventions
-      return data.map(item => ({
+      return queryData.map(item => ({
         id: item.id,
         title: item.title,
         category: item.category,
@@ -38,7 +55,7 @@ export const db = {
       }));
     } catch (err) {
       console.error('Error fetching products from database:', err);
-      return null; // Return null to signal fallback to static products
+      throw err;
     }
   },
 

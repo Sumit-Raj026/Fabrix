@@ -3,7 +3,6 @@ import { Search, Sun, Moon, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import Fuse from 'fuse.js';
 import { CONFIG } from '../config';
-import { PRODUCTS } from '../data/products';
 
 // Helper component to highlight matched text
 const HighlightText = ({ text = '', matches = [], keyName }) => {
@@ -50,7 +49,7 @@ export default function Header({ searchTerm, setSearchTerm, theme, toggleTheme, 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const sourceProducts = products.length > 0 ? products : PRODUCTS;
+  const sourceProducts = products;
 
   // Initialize Fuse for fuzzy searching
   const fuse = useMemo(() => new Fuse(sourceProducts, {
@@ -95,7 +94,7 @@ export default function Header({ searchTerm, setSearchTerm, theme, toggleTheme, 
 
   return (
     <header className="fixed top-0 left-0 z-50 w-full glass transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+      <div className="max-w-[1600px] mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
         
         {/* Brand Logo */}
         <div className="flex items-center gap-2">

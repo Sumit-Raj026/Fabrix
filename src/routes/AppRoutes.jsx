@@ -56,7 +56,7 @@ export default function AppRoutes({
       <Route path="/" element={
         <>
           <Hero />
-          <main id="catalog" className="flex-grow max-w-7xl mx-auto px-4 md:px-6 py-16 w-full relative overflow-hidden">
+          <main id="catalog" className="flex-grow max-w-[1600px] mx-auto px-4 md:px-6 py-16 w-full relative overflow-hidden">
             <div className="absolute top-[20%] left-[50%] -translate-x-1/2 w-[800px] h-[800px] bg-brand-gold/[0.03] rounded-full filter blur-3xl pointer-events-none -z-10" />
 
             <h2 className="font-serif text-2xl md:text-3xl font-light text-stone-900 dark:text-white mb-2 tracking-wide transition-colors duration-400">
@@ -75,15 +75,15 @@ export default function AppRoutes({
             />
 
             {dbLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 py-12">
-                {[1, 2, 3].map((n) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 md:gap-10 py-12">
+                {[1, 2, 3, 4, 5].map((n) => (
                   <div key={n} className="flex flex-col bg-brand-stone/40 border border-brand-border/45 rounded-sm p-6 space-y-4 animate-pulse">
                     <div className="aspect-[4/5] bg-stone-900/10 dark:bg-stone-800/10 rounded-sm w-full" />
                   </div>
                 ))}
               </div>
             ) : sortedProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 py-12 mb-24">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 md:gap-10 py-12 mb-24">
                 {sortedProducts.map((product) => (
                   <ProductCard 
                     key={product.id} 
@@ -126,21 +126,21 @@ export default function AppRoutes({
       } />
       
       <Route path="/story" element={
-        <main className="flex-grow max-w-7xl mx-auto px-4 md:px-6 pt-16 pb-8 w-full">
+        <main className="flex-grow max-w-[1600px] mx-auto px-4 md:px-6 pt-16 pb-8 w-full">
           <Helmet><title>Our Story | {CONFIG.STORE_NAME}</title></Helmet>
           <AboutPage />
         </main>
       } />
 
       <Route path="/wholesale" element={
-        <main className="flex-grow max-w-7xl mx-auto px-4 md:px-6 pt-16 pb-8 w-full">
+        <main className="flex-grow max-w-[1600px] mx-auto px-4 md:px-6 pt-16 pb-8 w-full">
           <Helmet><title>B2B & Wholesale | {CONFIG.STORE_NAME}</title></Helmet>
           <B2BPage />
         </main>
       } />
 
       <Route path="/contact" element={
-        <main className="flex-grow max-w-7xl mx-auto px-4 md:px-6 pt-16 pb-8 w-full">
+        <main className="flex-grow max-w-[1600px] mx-auto px-4 md:px-6 pt-16 pb-8 w-full">
           <Helmet><title>Contact Us | {CONFIG.STORE_NAME}</title></Helmet>
           <ContactPage />
         </main>
