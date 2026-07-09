@@ -87,5 +87,54 @@ export const db = {
       console.error('Error deleting product from database:', err);
       throw err;
     }
+  },
+
+  // --- Category Operations ---
+  
+  async getCategories() {
+    if (!supabase) return [];
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name', { ascending: true });
+      
+      if (error) throw error;
+      return data.map(c => c.name);
+    } catch (err) {
+      console.error('Error fetching categories from database:', err);
+      return null;
+    }
+  },
+
+  async saveCategory(name) {
+    if (!supabase) return false;
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .insert([{ name }]);
+      
+      if (error) throw error;
+      return true;
+    } catch (err) {
+      console.error('Error saving category to database:', err);
+      throw err;
+    }
+  },
+
+  async deleteCategory(name) {
+    if (!supabase) return false;
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('name', name);
+      
+      if (error) throw error;
+      return true;
+    } catch (err) {
+      console.error('Error deleting category from database:', err);
+      throw err;
+    }
   }
 };

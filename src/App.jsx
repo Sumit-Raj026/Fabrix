@@ -10,6 +10,7 @@ import { CONFIG } from './config';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { Mail, MapPin, Instagram, Heart } from 'lucide-react';
 import { useProducts } from './hooks/useProducts';
+import { useCategories } from './hooks/useCategories';
 
 export default function App() {
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -19,11 +20,10 @@ export default function App() {
   const [isB2BOpen, setIsB2BOpen] = useState(false);
   
   const { data: products = [], isLoading: dbLoading } = useProducts();
+  const { data: categories = [] } = useCategories();
 
   const navigate = useNavigate();
   const location = useLocation();
-
-  const categories = Array.from(new Set(products.filter(p => p && p.category).map((p) => p.category)));
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
