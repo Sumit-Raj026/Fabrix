@@ -69,10 +69,10 @@ export default function ProductDetailPage({ products = [], onBack, onOpenProduct
       <Helmet>
         <title>{product.title} | {CONFIG.STORE_NAME}</title>
         <meta name="description" content={product.description?.substring(0, 150) || `Buy ${product.title} at ${CONFIG.STORE_NAME}`} />
-        <meta property="og:title" content={`${product.title} | {CONFIG.STORE_NAME}`} />
+        <meta property="og:title" content={`${product.title} | ${CONFIG.STORE_NAME}`} />
         <meta property="og:description" content={product.description?.substring(0, 150)} />
         <meta property="og:image" content={currentImage} />
-        <meta property="twitter:title" content={`${product.title} | {CONFIG.STORE_NAME}`} />
+        <meta property="twitter:title" content={`${product.title} | ${CONFIG.STORE_NAME}`} />
         <meta property="twitter:description" content={product.description?.substring(0, 150)} />
         <meta property="twitter:image" content={currentImage} />
       </Helmet>

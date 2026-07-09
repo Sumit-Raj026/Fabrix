@@ -50,7 +50,7 @@ export default function ContactPage() {
         <div className="md:col-span-5 space-y-8">
           
           {/* Map Visual */}
-          <div className="w-full h-48 bg-brand-stone/40 border border-brand-border/40 rounded-sm overflow-hidden relative group">
+          <a href="https://maps.app.goo.gl/ycXaAiYhY8vSBoaf7" target="_blank" rel="noopener noreferrer" className="block w-full h-48 bg-brand-stone/40 border border-brand-border/40 rounded-sm overflow-hidden relative group">
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=800&auto=format&fit=crop')] bg-cover bg-center opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-60 transition-all duration-700"></div>
             <div className="absolute inset-0 bg-brand-charcoal/20 pointer-events-none"></div>
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
@@ -59,14 +59,14 @@ export default function ContactPage() {
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-brand-gold rounded-full animate-ping opacity-75"></div>
               </div>
             </div>
-          </div>
+          </a>
 
           <div className="space-y-6">
-            <h2 className="font-serif text-xl font-light text-stone-900 dark:text-white">Studio Headquarters</h2>
+            <h2 className="font-serif text-xl font-light text-stone-900 dark:text-white">Office Headquarters</h2>
             <div className="space-y-4 text-xs font-light text-stone-600 dark:text-stone-400">
               <div className="flex items-start gap-4">
                 <MapPin className="w-4 h-4 text-brand-gold flex-shrink-0 mt-0.5" />
-                <p className="leading-relaxed">{CONFIG.ADDRESS}</p>
+                <a href="https://maps.app.goo.gl/ycXaAiYhY8vSBoaf7" target="_blank" rel="noopener noreferrer" className="leading-relaxed hover:text-brand-gold transition-colors">{CONFIG.ADDRESS}</a>
               </div>
               <div className="flex items-center gap-4">
                 <Mail className="w-4 h-4 text-brand-gold flex-shrink-0" />
@@ -80,15 +80,15 @@ export default function ContactPage() {
           </div>
 
           <div className="space-y-4 border-t border-brand-border/40 pt-6">
-            <h2 className="font-serif text-xl font-light text-stone-900 dark:text-white">Studio Hours</h2>
+            <h2 className="font-serif text-xl font-light text-stone-900 dark:text-white">Office Hours</h2>
             <div className="space-y-3 text-xs font-light text-stone-600 dark:text-stone-400">
               <div className="flex items-center gap-4">
                 <Clock className="w-4 h-4 text-brand-gold flex-shrink-0" />
-                <span>Monday &ndash; Friday: 10:00 AM &ndash; 6:00 PM IST</span>
+                <span>Monday &ndash; Saturday: 9:00 AM &ndash; 10:00 PM IST</span>
               </div>
               <div className="flex items-center gap-4">
                 <Clock className="w-4 h-4 text-stone-500 flex-shrink-0" />
-                <span>Saturday &ndash; Sunday: Closed</span>
+                <span>Sunday: Closed</span>
               </div>
             </div>
           </div>

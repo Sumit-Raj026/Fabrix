@@ -7,11 +7,11 @@ import { CONFIG } from '../config';
 import Hero from '../components/Hero';
 import Filters from '../components/Filters';
 import ProductCard from '../components/ProductCard';
-import AboutPage from '../components/AboutPage';
-import ContactPage from '../components/ContactPage';
-import B2BPage from '../components/B2BPage';
-import ProductDetailPage from '../components/ProductDetailPage';
-import SearchResultsPage from '../components/SearchResultsPage';
+const AboutPage = lazy(() => import('../components/AboutPage'));
+const ContactPage = lazy(() => import('../components/ContactPage'));
+const B2BPage = lazy(() => import('../components/B2BPage'));
+const ProductDetailPage = lazy(() => import('../components/ProductDetailPage'));
+const SearchResultsPage = lazy(() => import('../components/SearchResultsPage'));
 
 const AdminPanel = lazy(() => import('../components/admin/AdminLayout'));
 const AdminLogin = lazy(() => import('../components/admin/AdminLogin'));
@@ -51,7 +51,8 @@ export default function AppRoutes({
   });
 
   return (
-    <Routes>
+    <Suspense fallback={<div className="min-h-screen flex flex-col items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-gold mb-4" /></div>}>
+      <Routes>
       <Route path="/" element={
         <>
           <Hero />
@@ -183,6 +184,7 @@ export default function AppRoutes({
           )}
         </Suspense>
       } />
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 }
