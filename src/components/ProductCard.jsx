@@ -32,13 +32,13 @@ export default function ProductCard({ product, onOpen }) {
 
         {/* Customization Badge */}
         {product.customizable && (
-          <span className="absolute top-4 left-4 z-10 bg-brand-gold text-brand-charcoal text-[8px] font-bold tracking-widest uppercase py-1 px-3 shadow-md rounded-sm">
+          <span className="absolute top-2 left-2 md:top-4 md:left-4 z-10 bg-brand-gold text-brand-charcoal text-[7px] md:text-[8px] font-bold tracking-widest uppercase py-0.5 px-2 md:py-1 md:px-3 shadow-md rounded-sm">
             Bespoke
           </span>
         )}
 
         {/* Category Badge on card */}
-        <span className="absolute top-4 right-4 z-10 bg-brand-charcoal/80 backdrop-blur-md text-white text-[8px] font-semibold tracking-widest uppercase py-1 px-2.5 rounded-sm">
+        <span className="absolute top-2 right-2 md:top-4 md:right-4 z-10 bg-brand-charcoal/80 backdrop-blur-md text-white text-[7px] md:text-[8px] font-semibold tracking-widest uppercase py-0.5 px-2 md:py-1 md:px-2.5 rounded-sm">
           {product.category}
         </span>
 
@@ -51,14 +51,14 @@ export default function ProductCard({ product, onOpen }) {
       </div>
 
       {/* Info Container */}
-      <div className="p-6 flex flex-col flex-grow bg-brand-stone">
-        <span className="text-[9px] font-bold tracking-widest text-stone-500 uppercase mb-2">
+      <div className="p-3 md:p-6 flex flex-col flex-grow bg-brand-stone">
+        <span className="text-[8px] md:text-[9px] font-bold tracking-widest text-stone-500 uppercase mb-1 md:mb-2 truncate">
           {product.id}
         </span>
-        <h3 className="font-serif text-base text-stone-900 dark:text-white font-light line-clamp-1 mb-2 group-hover:text-brand-gold transition-colors duration-300">
+        <h3 className="font-serif text-sm md:text-base text-stone-900 dark:text-white font-light line-clamp-2 mb-2 group-hover:text-brand-gold transition-colors duration-300 min-h-[2.5rem] md:min-h-0">
           {product.title}
         </h3>
-        <div className="flex items-center justify-between mt-auto pt-4 border-t border-brand-border/60">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-auto pt-3 md:pt-4 border-t border-brand-border/60 gap-3 sm:gap-0">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-sm font-semibold text-brand-gold">
               {formatPrice(product.price)}
@@ -74,7 +74,7 @@ export default function ProductCard({ product, onOpen }) {
               </>
             )}
           </div>
-          <span className="text-[10px] font-bold tracking-widest text-stone-400 uppercase flex items-center gap-1 group-hover:gap-2 group-hover:text-brand-gold transition-all duration-300">
+          <span className="text-[9px] md:text-[10px] font-bold tracking-widest text-stone-400 uppercase flex items-center gap-1 group-hover:gap-2 group-hover:text-brand-gold transition-all duration-300 w-full sm:w-auto justify-end">
             Details <ArrowRight className="w-3.5 h-3.5" />
           </span>
         </div>

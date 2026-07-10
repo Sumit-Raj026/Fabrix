@@ -75,7 +75,7 @@ export default function AppRoutes({
             />
 
             {dbLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 md:gap-10 py-12">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-8 lg:gap-10 py-12">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <div key={n} className="flex flex-col bg-brand-stone/40 border border-brand-border/45 rounded-sm p-6 space-y-4 animate-pulse">
                     <div className="aspect-[4/5] bg-stone-900/10 dark:bg-stone-800/10 rounded-sm w-full" />
@@ -83,7 +83,7 @@ export default function AppRoutes({
                 ))}
               </div>
             ) : sortedProducts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 md:gap-10 py-12 mb-24">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-8 lg:gap-10 py-12 mb-24">
                 {sortedProducts.map((product) => (
                   <ProductCard 
                     key={product.id} 

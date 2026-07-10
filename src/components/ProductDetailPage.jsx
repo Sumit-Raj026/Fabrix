@@ -211,7 +211,7 @@ export default function ProductDetailPage({ products = [], onBack, onOpenProduct
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 md:gap-10">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-10">
             {relatedProducts.map((p) => (
               <ProductCard 
                 key={p.id} 
