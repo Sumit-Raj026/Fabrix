@@ -11,6 +11,22 @@ export const supabase = isSupabaseConfigured
 
 // Database helper operations
 export const db = {
+  // Helper to map DB schema to frontend naming
+  _mapProduct(item) {
+    return {
+      id: item.id,
+      title: item.title,
+      category: item.category,
+      price: Number(item.price),
+      originalPrice: item.original_price ? Number(item.original_price) : null,
+      description: item.description,
+      details: Array.isArray(item.details) ? item.details : JSON.parse(item.details || '[]'),
+      images: Array.isArray(item.images) ? item.images : JSON.parse(item.images || '[]'),
+      customizable: item.customizable,
+      customizationLabel: item.customization_label || ''
+    };
+  },
+
   // Fetch all products from Supabase
   async getProducts() {
     if (!supabase) return [];
@@ -23,14 +39,11 @@ export const db = {
         .order('created_at', { ascending: true });
       
       if (error) {
-        // If display_order column doesn't exist yet, fallback to created_at
         if (error.code === '42703' || error.message?.includes('display_order')) {
-          console.warn("display_order column missing, falling back to created_at sorting");
           const fallback = await supabase
             .from('products')
             .select('*')
             .order('created_at', { ascending: true });
-          
           if (fallback.error) throw fallback.error;
           queryData = fallback.data;
         } else {
@@ -39,23 +52,115 @@ export const db = {
       } else {
         queryData = data;
       }
-      
-      // Map database schema columns back to frontend naming conventions
-      return queryData.map(item => ({
-        id: item.id,
-        title: item.title,
-        category: item.category,
-        price: Number(item.price),
-        originalPrice: item.original_price ? Number(item.original_price) : null,
-        description: item.description,
-        details: Array.isArray(item.details) ? item.details : JSON.parse(item.details || '[]'),
-        images: Array.isArray(item.images) ? item.images : JSON.parse(item.images || '[]'),
-        customizable: item.customizable,
-        customizationLabel: item.customization_label || ''
-      }));
+      return queryData.map(db._mapProduct);
     } catch (err) {
       console.error('Error fetching products from database:', err);
       throw err;
+    }
+  },
+
+  async getPaginatedProducts({ page = 1, limit = 20, category = 'All', sortBy = 'default', search = '' }) {
+    if (!supabase) return { data: [], count: 0 };
+    try {
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
+
+      let query = supabase.from('products').select('*', { count: 'exact' });
+
+      if (category && category !== 'All') {
+        query = query.eq('category', category);
+      }
+      
+      if (search) {
+        query = query.ilike('title', `%${search}%`);
+      }
+
+      // Sorting
+      if (sortBy === 'price-asc') {
+        query = query.order('price', { ascending: true });
+      } else if (sortBy === 'price-desc') {
+        query = query.order('price', { ascending: false });
+      } else {
+        query = query.order('display_order', { ascending: true, nullsFirst: false }).order('created_at', { ascending: true });
+      }
+
+      query = query.range(from, to);
+
+      const { data, error, count } = await query;
+      
+      if (error) {
+        // Fallback for missing display_order
+        if (error.code === '42703' || error.message?.includes('display_order')) {
+          let fallbackQuery = supabase.from('products').select('*', { count: 'exact' });
+          if (category && category !== 'All') fallbackQuery = fallbackQuery.eq('category', category);
+          if (search) fallbackQuery = fallbackQuery.ilike('title', `%${search}%`);
+          if (sortBy === 'price-asc') fallbackQuery = fallbackQuery.order('price', { ascending: true });
+          else if (sortBy === 'price-desc') fallbackQuery = fallbackQuery.order('price', { ascending: false });
+          else fallbackQuery = fallbackQuery.order('created_at', { ascending: true });
+          
+          const fallback = await fallbackQuery.range(from, to);
+          if (fallback.error) throw fallback.error;
+          return { data: fallback.data.map(db._mapProduct), count: fallback.count };
+        }
+        throw error;
+      }
+      
+      return { data: data.map(db._mapProduct), count };
+    } catch (err) {
+      console.error('Error fetching paginated products:', err);
+      throw err;
+    }
+  },
+
+  async searchProducts(searchQuery) {
+    if (!supabase || !searchQuery) return [];
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .or(`title.ilike.%${searchQuery}%,category.ilike.%${searchQuery}%,id.ilike.%${searchQuery}%`)
+        .limit(20);
+      
+      if (error) throw error;
+      return data.map(db._mapProduct);
+    } catch (err) {
+      console.error('Error searching products:', err);
+      throw err;
+    }
+  },
+
+  async getProductById(id) {
+    if (!supabase) return null;
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      return data ? db._mapProduct(data) : null;
+    } catch (err) {
+      console.error('Error fetching product by id:', err);
+      return null;
+    }
+  },
+
+  async getRelatedProducts(category, excludeId, limit = 4) {
+    if (!supabase) return [];
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('category', category)
+        .neq('id', excludeId)
+        .limit(limit);
+      
+      if (error) throw error;
+      return data.map(db._mapProduct);
+    } catch (err) {
+      console.error('Error fetching related products:', err);
+      return [];
     }
   },
 

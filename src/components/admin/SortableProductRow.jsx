@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { formatSKU } from '../../utils/formatters';
 import { GripVertical, Edit2, Trash2, Image as ImageIcon } from 'lucide-react';
 
 export default function SortableProductRow({ product, onEdit, onDelete, formatPrice }) {
@@ -48,7 +49,7 @@ export default function SortableProductRow({ product, onEdit, onDelete, formatPr
           </div>
           <div>
             <div className="font-serif text-white tracking-wide group-hover:text-brand-gold transition-colors">{product.title}</div>
-            <div className="text-[10px] text-stone-500 font-bold tracking-wider mt-1">{product.id}</div>
+            <div className="text-[10px] text-stone-500 font-bold tracking-wider mt-1">{formatSKU(product.id)}</div>
           </div>
         </div>
       </td>

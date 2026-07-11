@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Loader2 } from 'lucide-react';
 import { CONFIG } from '../config';
@@ -7,6 +7,8 @@ import { CONFIG } from '../config';
 import Hero from '../components/Hero';
 import Filters from '../components/Filters';
 import ProductCard from '../components/ProductCard';
+import Pagination from '../components/Pagination';
+import { usePaginatedProducts } from '../hooks/useProducts';
 const AboutPage = lazy(() => import('../components/AboutPage'));
 const ContactPage = lazy(() => import('../components/ContactPage'));
 const B2BPage = lazy(() => import('../components/B2BPage'));
@@ -17,9 +19,7 @@ const AdminPanel = lazy(() => import('../components/admin/AdminLayout'));
 const AdminLogin = lazy(() => import('../components/admin/AdminLogin'));
 
 export default function AppRoutes({
-  products,
   categories,
-  dbLoading,
   selectedCategory,
   setSelectedCategory,
   searchTerm,
@@ -34,21 +34,41 @@ export default function AppRoutes({
   handleLogout
 }) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const page = parseInt(searchParams.get('page') || '1', 10);
+  const limit = 20;
 
-  const filteredProducts = products.filter((product) => {
-    if (!product) return false;
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-    const matchesSearch = product.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          product.id.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
+  const { data: { data: currentProducts = [], count = 0 } = {}, isLoading: dbLoading } = usePaginatedProducts({
+    page,
+    limit,
+    category: selectedCategory,
+    sortBy,
+    search: searchTerm,
   });
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (sortBy === 'price-asc') return a.price - b.price;
-    if (sortBy === 'price-desc') return b.price - a.price;
-    return 0;
-  });
+  const totalPages = Math.ceil(count / limit);
+
+  const handlePageChange = (newPage) => {
+    setSearchParams((prev) => {
+      prev.set('page', newPage.toString());
+      return prev;
+    });
+    const catalogElement = document.getElementById('catalog');
+    if (catalogElement) {
+      catalogElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  // Reset to page 1 if filters change
+  React.useEffect(() => {
+    if (page !== 1) {
+      setSearchParams((prev) => {
+        prev.set('page', '1');
+        return prev;
+      }, { replace: true });
+    }
+  }, [selectedCategory, sortBy, searchTerm]);
 
   return (
     <Suspense fallback={<div className="min-h-screen flex flex-col items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-gold mb-4" /></div>}>
@@ -76,22 +96,30 @@ export default function AppRoutes({
 
             {dbLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-8 lg:gap-10 py-12">
-                {[1, 2, 3, 4, 5].map((n) => (
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                   <div key={n} className="flex flex-col bg-brand-stone/40 border border-brand-border/45 rounded-sm p-6 space-y-4 animate-pulse">
                     <div className="aspect-[4/5] bg-stone-900/10 dark:bg-stone-800/10 rounded-sm w-full" />
                   </div>
                 ))}
               </div>
-            ) : sortedProducts.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-8 lg:gap-10 py-12 mb-24">
-                {sortedProducts.map((product) => (
-                  <ProductCard 
-                    key={product.id} 
-                    product={product} 
-                    onOpen={handleOpenProduct} 
-                  />
-                ))}
-              </div>
+            ) : currentProducts.length > 0 ? (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-8 lg:gap-10 py-12 mb-8">
+                  {currentProducts.map((product) => (
+                    <ProductCard 
+                      key={product.id} 
+                      product={product} 
+                      onOpen={handleOpenProduct} 
+                    />
+                  ))}
+                </div>
+                
+                <Pagination 
+                  currentPage={page} 
+                  totalPages={totalPages} 
+                  onPageChange={handlePageChange} 
+                />
+              </>
             ) : (
               <div className="py-12">
                 <div className="text-center py-16 border border-brand-border rounded-sm bg-brand-stone/40 max-w-2xl mx-auto mb-16 shadow-sm">
@@ -148,14 +176,12 @@ export default function AppRoutes({
 
       <Route path="/search" element={
         <SearchResultsPage 
-          products={products} 
           onSelectProduct={handleOpenProduct} 
         />
       } />
 
       <Route path="/product/:id" element={
         <ProductDetailPage 
-          products={products} 
           onBack={handleCloseProduct} 
           onOpenProduct={handleOpenProduct} 
         />
@@ -175,7 +201,6 @@ export default function AppRoutes({
             />
           ) : (
             <AdminPanel 
-              products={products} 
               categories={categories}
               user={user}
               onClose={() => navigate('/')}

@@ -1,39 +1,33 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Search, Sun, Moon, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import Fuse from 'fuse.js';
+import { useSearchProducts } from '../hooks/useProducts';
 import { CONFIG } from '../config';
 
 // Helper component to highlight matched text
-const HighlightText = ({ text = '', matches = [], keyName }) => {
-  if (!matches || matches.length === 0) return <span>{text}</span>;
-  
-  const match = matches.find(m => m.key === keyName);
-  if (!match || !match.indices || match.indices.length === 0) return <span>{text}</span>;
+const HighlightText = ({ text = '', matches }) => {
+  if (!text) return <span>{text}</span>;
 
-  let lastIndex = 0;
-  const nodes = [];
-  
-  match.indices.forEach(([start, end], i) => {
-    if (start > lastIndex) {
-      nodes.push(<span key={`${i}-text`}>{text.substring(lastIndex, start)}</span>);
-    }
-    nodes.push(
-      <strong key={`${i}-match`} className="text-brand-gold font-bold">
-        {text.substring(start, end + 1)}
-      </strong>
-    );
-    lastIndex = end + 1;
-  });
+  const searchTerm = typeof matches === 'string' ? matches : '';
+  if (!searchTerm) return <span>{text}</span>;
 
-  if (lastIndex < text.length) {
-    nodes.push(<span key="last-text">{text.substring(lastIndex)}</span>);
-  }
+  const regex = new RegExp(`(${searchTerm})`, 'gi');
+  const parts = text.split(regex);
 
-  return <span>{nodes}</span>;
+  return (
+    <span>
+      {parts.map((part, i) => 
+        regex.test(part) ? (
+          <strong key={i} className="text-brand-gold font-bold">{part}</strong>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </span>
+  );
 };
 
-export default function Header({ searchTerm, setSearchTerm, theme, toggleTheme, onSelectProduct, onOpenB2B, products = [] }) {
+export default function Header({ searchTerm, setSearchTerm, theme, toggleTheme, onSelectProduct, onOpenB2B }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -49,28 +43,15 @@ export default function Header({ searchTerm, setSearchTerm, theme, toggleTheme, 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const sourceProducts = products;
-
-  // Initialize Fuse for fuzzy searching
-  const fuse = useMemo(() => new Fuse(sourceProducts, {
-    keys: [
-      { name: 'title', weight: 0.5 },
-      { name: 'category', weight: 0.3 },
-      { name: 'id', weight: 0.1 },
-      { name: 'description', weight: 0.1 }
-    ],
-    threshold: 0.4,
-    ignoreLocation: true,
-    includeMatches: true
-  }), [sourceProducts]);
+  const { data: searchResults = [] } = useSearchProducts(searchTerm);
 
   // Filter recommendations based on search term
   const suggestionsData = useMemo(() => {
     if (!searchTerm.trim()) {
-      return sourceProducts.slice(0, 4).map(item => ({ item, matches: [] }));
+      return []; // Return empty when no search term
     }
-    return fuse.search(searchTerm).slice(0, 5);
-  }, [searchTerm, fuse, sourceProducts]);
+    return searchResults.slice(0, 5).map(item => ({ item, matches: searchTerm }));
+  }, [searchTerm, searchResults]);
 
   const hasInput = searchTerm.trim().length > 0;
 

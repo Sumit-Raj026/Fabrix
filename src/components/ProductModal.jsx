@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Send, Award, ChevronLeft, ChevronRight } from 'lucide-react';
 import FocusTrap from 'focus-trap-react';
 import { CONFIG } from '../config';
+import { formatSKU } from '../utils/formatters';
 
 export default function ProductModal({ product, onClose }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -71,7 +72,7 @@ export default function ProductModal({ product, onClose }) {
     let message = `Hello Fabrix, I'm interested in inquiring about/purchasing this item:
 
 🛍️ *Product:* ${product.title}
-🆔 *Product ID:* ${product.id}
+🆔 *Product ID:* ${formatSKU(product.id)}
 💰 *Price:* ${formatPrice(product.price)}
 📂 *Category:* ${product.category}`;
 
@@ -180,12 +181,12 @@ export default function ProductModal({ product, onClose }) {
           <div>
             {/* Category and ID */}
             <div className="flex items-center gap-3 mb-3">
-              <span className="text-[10px] font-bold tracking-widest text-brand-gold uppercase">
+              <span className="text-[10px] md:text-xs font-bold tracking-widest text-brand-gold uppercase">
                 {product.category}
               </span>
               <span className="text-brand-border">|</span>
               <span className="text-[10px] font-medium tracking-wider text-stone-500">
-                {product.id}
+                {formatSKU(product.id)}
               </span>
             </div>
 

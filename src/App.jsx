@@ -9,7 +9,6 @@ import AppRoutes from './routes/AppRoutes';
 import { CONFIG } from './config';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { Mail, MapPin, Instagram, Heart } from 'lucide-react';
-import { useProducts } from './hooks/useProducts';
 import { useCategories } from './hooks/useCategories';
 
 export default function App() {
@@ -19,7 +18,6 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isB2BOpen, setIsB2BOpen] = useState(false);
   
-  const { data: products = [], isLoading: dbLoading } = useProducts();
   const { data: categories = [] } = useCategories();
 
   const navigate = useNavigate();
@@ -99,9 +97,7 @@ export default function App() {
 
       <main className={`flex-grow flex flex-col ${!location.pathname.startsWith('/admin') ? 'pt-16' : ''}`}>
         <AppRoutes
-          products={products}
           categories={categories}
-          dbLoading={dbLoading}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
           searchTerm={searchTerm}

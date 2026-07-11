@@ -4,11 +4,14 @@ import { useParams, useNavigationType } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import ProductCard from './ProductCard';
 import { CONFIG } from '../config';
+import { formatSKU } from '../utils/formatters';
+import { useProduct, useRelatedProducts } from '../hooks/useProducts';
 
-export default function ProductDetailPage({ products = [], onBack, onOpenProduct }) {
+export default function ProductDetailPage({ onBack, onOpenProduct }) {
   const { id: productId } = useParams();
   const navType = useNavigationType();
-  const product = products.find(p => p.id === productId);
+  const { data: product, isLoading, error } = useProduct(productId);
+  const { data: relatedProducts = [] } = useRelatedProducts(product?.category, productId);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [customText, setCustomText] = useState('');
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -24,7 +27,15 @@ export default function ProductDetailPage({ products = [], onBack, onOpenProduct
     }
   }, [productId, navType]);
 
-  if (!product) {
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold"></div>
+      </div>
+    );
+  }
+
+  if (error || !product) {
     return (
       <div className="text-center py-20 space-y-4">
         <AlertTriangle className="w-12 h-12 text-rose-500 mx-auto" />
@@ -54,15 +65,10 @@ export default function ProductDetailPage({ products = [], onBack, onOpenProduct
   const currentImage = images[activeImageIndex] || '';
 
   const handleBuyWhatsApp = () => {
-    const textMsg = `Hi Fabrix! I am interested in purchasing the product:\n\n*Product Name:* ${product.title}\n*Product SKU:* ${product.id}\n*Category:* ${product.category}\n*Price:* ${formatPrice(product.price)}${product.customizable && customText ? `\n*Customization Details:* ${customText}` : ''}\n\nPlease confirm availability and payment options.`;
+    const textMsg = `Hi Fabrix! I am interested in purchasing the product:\n\n*Product Name:* ${product.title}\n*Product SKU:* ${formatSKU(product.id)}\n*Category:* ${product.category}\n*Price:* ${formatPrice(product.price)}${product.customizable && customText ? `\n*Customization Details:* ${customText}` : ''}\n\nPlease confirm availability and payment options.`;
     const encoded = encodeURIComponent(textMsg);
     window.open(`https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encoded}`, '_blank');
   };
-
-  // Get similar products
-  const relatedProducts = products
-    .filter(p => p.id !== product.id && p.category === product.category)
-    .slice(0, 3);
 
   return (
     <>
@@ -148,7 +154,7 @@ export default function ProductDetailPage({ products = [], onBack, onOpenProduct
             <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.2em] uppercase">
               <span className="text-brand-gold">{product.category}</span>
               <span className="w-px h-3 bg-stone-700"></span>
-              <span className="text-stone-500">{product.id}</span>
+              <span className="text-stone-500">{formatSKU(product.id)}</span>
             </div>
             <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-light text-stone-900 dark:text-white leading-tight">{product.title}</h1>
           </div>

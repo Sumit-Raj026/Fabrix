@@ -1,5 +1,6 @@
 import React from 'react';
 import { Eye, ArrowRight } from 'lucide-react';
+import { formatSKU } from '../utils/formatters';
 
 export default function ProductCard({ product, onOpen }) {
   const formatPrice = (price) => {
@@ -53,7 +54,7 @@ export default function ProductCard({ product, onOpen }) {
       {/* Info Container */}
       <div className="p-3 md:p-6 flex flex-col flex-grow bg-brand-stone">
         <span className="text-[8px] md:text-[9px] font-bold tracking-widest text-stone-500 uppercase mb-1 md:mb-2 truncate">
-          {product.id}
+          {formatSKU(product.id)}
         </span>
         <h3 className="font-serif text-sm md:text-base text-stone-900 dark:text-white font-light line-clamp-2 mb-2 group-hover:text-brand-gold transition-colors duration-300 min-h-[2.5rem] md:min-h-0">
           {product.title}

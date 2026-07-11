@@ -1,37 +1,19 @@
 import React, { useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import Fuse from 'fuse.js';
 import ProductCard from './ProductCard';
+import { useSearchProducts, usePaginatedProducts } from '../hooks/useProducts';
 import { Search, ArrowRight } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { CONFIG } from '../config';
 
-export default function SearchResultsPage({ products, onSelectProduct }) {
+export default function SearchResultsPage({ onSelectProduct }) {
   const [searchParams] = useSearchParams();
   const query = searchParams.get('q') || '';
 
-  const searchResults = useMemo(() => {
-    if (!query) return [];
-    
-    const fuse = new Fuse(products, {
-      keys: [
-        { name: 'title', weight: 0.5 },
-        { name: 'category', weight: 0.3 },
-        { name: 'id', weight: 0.1 },
-        { name: 'description', weight: 0.1 }
-      ],
-      threshold: 0.4,
-      ignoreLocation: true,
-      includeScore: true
-    });
-
-    return fuse.search(query).map(result => result.item);
-  }, [query, products]);
+  const { data: searchResults = [], isLoading } = useSearchProducts(query);
 
   // Fallback to popular products if no results
-  const popularProducts = useMemo(() => {
-    return products.slice(0, 4);
-  }, [products]);
+  const { data: { data: popularProducts = [] } = {} } = usePaginatedProducts({ limit: 4 });
 
   return (
     <main className="flex-grow max-w-[1600px] mx-auto px-4 md:px-6 pt-16 pb-16 w-full animate-fade-in">
@@ -50,7 +32,11 @@ export default function SearchResultsPage({ products, onSelectProduct }) {
         </div>
       </div>
 
-      {searchResults.length > 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center items-center h-32">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold"></div>
+        </div>
+      ) : searchResults.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-x-3 gap-y-8 md:gap-x-6 md:gap-y-12">
           {searchResults.map((product) => (
             <ProductCard 

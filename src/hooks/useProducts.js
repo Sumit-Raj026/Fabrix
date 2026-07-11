@@ -22,6 +22,54 @@ export function useProducts() {
   });
 }
 
+export function usePaginatedProducts(options = {}) {
+  const { page = 1, limit = 20, category = 'All', sortBy = 'default', search = '' } = options;
+  return useQuery({
+    queryKey: ['products', 'paginated', { page, limit, category, sortBy, search }],
+    queryFn: async () => {
+      return await db.getPaginatedProducts({ page, limit, category, sortBy, search });
+    },
+    keepPreviousData: true,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useSearchProducts(searchQuery) {
+  return useQuery({
+    queryKey: ['products', 'search', searchQuery],
+    queryFn: async () => {
+      if (!searchQuery) return [];
+      return await db.searchProducts(searchQuery);
+    },
+    enabled: !!searchQuery,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useProduct(id) {
+  return useQuery({
+    queryKey: ['product', id],
+    queryFn: async () => {
+      if (!id) return null;
+      return await db.getProductById(id);
+    },
+    enabled: !!id,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
+export function useRelatedProducts(category, excludeId) {
+  return useQuery({
+    queryKey: ['products', 'related', category, excludeId],
+    queryFn: async () => {
+      if (!category) return [];
+      return await db.getRelatedProducts(category, excludeId);
+    },
+    enabled: !!category,
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
 export function useReorderProducts() {
   const queryClient = useQueryClient();
 

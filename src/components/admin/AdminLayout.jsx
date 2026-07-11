@@ -3,6 +3,8 @@ import {
   LayoutDashboard, ShoppingBag, Tag, Package, Briefcase, ArrowLeft, LogOut
 } from 'lucide-react';
 import { CONFIG } from '../../config';
+import { useProducts } from '../../hooks/useProducts';
+import { Loader2 } from 'lucide-react';
 
 import AdminDashboard from './AdminDashboard';
 import ProductManagement from './ProductManagement';
@@ -10,8 +12,9 @@ import CategoryManagement from './CategoryManagement';
 import InventoryPanel from './InventoryPanel';
 import B2BManagement from './B2BManagement';
 
-export default function AdminLayout({ products, categories, user, onClose, onLogout }) {
+export default function AdminLayout({ categories, user, onClose, onLogout }) {
   const [activeTab, setActiveTab] = useState('products'); // dashboard, products, categories, inventory, b2b
+  const { data: products = [], isLoading } = useProducts();
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -22,6 +25,14 @@ export default function AdminLayout({ products, categories, user, onClose, onLog
   ];
 
   const renderActiveTab = () => {
+    if (isLoading) {
+      return (
+        <div className="flex-grow flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-gold" />
+        </div>
+      );
+    }
+
     switch (activeTab) {
       case 'dashboard':
         return <AdminDashboard products={products} categories={categories} />;
