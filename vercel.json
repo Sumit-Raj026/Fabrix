@@ -32,6 +32,17 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|whatsapp).*"
+        }
+      ],
+      "destination": "/api/prerender?url=https://hellofabrix.com/$1"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
