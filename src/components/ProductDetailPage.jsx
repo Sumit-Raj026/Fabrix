@@ -81,6 +81,28 @@ export default function ProductDetailPage({ onBack, onOpenProduct }) {
         <meta property="twitter:title" content={`${product.title} | ${CONFIG.STORE_NAME}`} />
         <meta property="twitter:description" content={product.description?.substring(0, 150)} />
         <meta property="twitter:image" content={currentImage} />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            "name": product.title,
+            "image": currentImage,
+            "description": product.description,
+            "sku": product.id,
+            "offers": {
+              "@type": "Offer",
+              "url": window.location.href,
+              "priceCurrency": "INR",
+              "price": product.price,
+              "itemCondition": "https://schema.org/NewCondition",
+              "availability": "https://schema.org/InStock",
+              "seller": {
+                "@type": "Organization",
+                "name": CONFIG.STORE_NAME
+              }
+            }
+          })}
+        </script>
       </Helmet>
       <div className="animate-fade-in space-y-6 pt-4 pb-8 px-6 md:px-12 lg:px-24 max-w-[1600px] mx-auto text-stone-900 dark:text-stone-150">
       
