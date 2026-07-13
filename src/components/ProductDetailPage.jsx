@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, MessageSquare, Shield, HelpCircle, ArrowRight, Sparkles, AlertTriangle, Send } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Send } from 'lucide-react';
 import { useParams, useNavigationType } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import ProductCard from './ProductCard';
@@ -13,7 +13,7 @@ export default function ProductDetailPage({ onBack, onOpenProduct }) {
   const { data: product, isLoading, error } = useProduct(productId);
   const { data: relatedProducts = [] } = useRelatedProducts(product?.category, productId);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [customText, setCustomText] = useState('');
+
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   // Automatically scroll to the top when navigating to a new product
@@ -65,7 +65,7 @@ export default function ProductDetailPage({ onBack, onOpenProduct }) {
   const currentImage = images[activeImageIndex] || '';
 
   const handleBuyWhatsApp = () => {
-    const textMsg = `Hi Fabrix! I am interested in purchasing the product:\n\n*Product Name:* ${product.title}\n*Product SKU:* ${formatSKU(product.id)}\n*Category:* ${product.category}\n*Price:* ${formatPrice(product.price)}${product.customizable && customText ? `\n*Customization Details:* ${customText}` : ''}\n\nPlease confirm availability and payment options.`;
+    const textMsg = `Hi Fabrix! I am interested in purchasing the product:\n\n*Product Name:* ${product.title}\n*Product SKU:* ${formatSKU(product.id)}\n*Category:* ${product.category}\n*Price:* ${formatPrice(product.price)}\n\nPlease confirm availability and payment options.`;
     const encoded = encodeURIComponent(textMsg);
     window.open(`https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encoded}`, '_blank');
   };

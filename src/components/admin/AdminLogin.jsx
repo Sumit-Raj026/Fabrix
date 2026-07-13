@@ -54,9 +54,11 @@ export default function AdminLogin({ onLoginSuccess, onClose }) {
         
         {/* Header Logo & Title */}
         <div className="text-center mb-8">
-          <span className="font-serif text-2xl font-bold tracking-[0.25em] text-white uppercase block mb-1">
-            {CONFIG.STORE_NAME}
-          </span>
+          <img 
+            src="/logo.png" 
+            alt={CONFIG.STORE_NAME} 
+            className="h-12 sm:h-16 w-auto mx-auto object-contain rounded-sm shadow-md mb-3"
+          />
           <span className="text-[9px] font-bold text-brand-gold tracking-[0.3em] uppercase block">
             Security Gatehouse
           </span>

@@ -60,15 +60,25 @@ export default function AppRoutes({
     }
   };
 
-  // Reset to page 1 if filters change
+  const filterRef = React.useRef({ selectedCategory, sortBy, searchTerm });
+
+  // Reset to page 1 ONLY if filters change
   React.useEffect(() => {
-    if (page !== 1) {
-      setSearchParams((prev) => {
-        prev.set('page', '1');
-        return prev;
-      }, { replace: true });
+    const filtersChanged = 
+      filterRef.current.selectedCategory !== selectedCategory ||
+      filterRef.current.sortBy !== sortBy ||
+      filterRef.current.searchTerm !== searchTerm;
+
+    if (filtersChanged) {
+      filterRef.current = { selectedCategory, sortBy, searchTerm };
+      if (page !== 1) {
+        setSearchParams((prev) => {
+          prev.set('page', '1');
+          return prev;
+        }, { replace: true });
+      }
     }
-  }, [selectedCategory, sortBy, searchTerm]);
+  }, [selectedCategory, sortBy, searchTerm, page, setSearchParams]);
 
   return (
     <Suspense fallback={<div className="min-h-screen flex flex-col items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-gold mb-4" /></div>}>

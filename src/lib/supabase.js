@@ -31,28 +31,14 @@ export const db = {
   async getProducts() {
     if (!supabase) return [];
     try {
-      let queryData;
       const { data, error } = await supabase
         .from('products')
         .select('*')
         .order('display_order', { ascending: true, nullsFirst: false })
         .order('created_at', { ascending: true });
+      if (error) throw error;
       
-      if (error) {
-        if (error.code === '42703' || error.message?.includes('display_order')) {
-          const fallback = await supabase
-            .from('products')
-            .select('*')
-            .order('created_at', { ascending: true });
-          if (fallback.error) throw fallback.error;
-          queryData = fallback.data;
-        } else {
-          throw error;
-        }
-      } else {
-        queryData = data;
-      }
-      return queryData.map(db._mapProduct);
+      return data.map(db._mapProduct);
     } catch (err) {
       console.error('Error fetching products from database:', err);
       throw err;
@@ -72,7 +58,9 @@ export const db = {
       }
       
       if (search) {
-        query = query.ilike('title', `%${search}%`);
+        // Prepare search term for textSearch (replace spaces with & or just let Supabase handle it)
+        const formattedSearch = search.trim().split(/\s+/).join(' & ');
+        query = query.textSearch('fts', formattedSearch, { config: 'english' });
       }
 
       // Sorting
@@ -87,23 +75,7 @@ export const db = {
       query = query.range(from, to);
 
       const { data, error, count } = await query;
-      
-      if (error) {
-        // Fallback for missing display_order
-        if (error.code === '42703' || error.message?.includes('display_order')) {
-          let fallbackQuery = supabase.from('products').select('*', { count: 'exact' });
-          if (category && category !== 'All') fallbackQuery = fallbackQuery.eq('category', category);
-          if (search) fallbackQuery = fallbackQuery.ilike('title', `%${search}%`);
-          if (sortBy === 'price-asc') fallbackQuery = fallbackQuery.order('price', { ascending: true });
-          else if (sortBy === 'price-desc') fallbackQuery = fallbackQuery.order('price', { ascending: false });
-          else fallbackQuery = fallbackQuery.order('created_at', { ascending: true });
-          
-          const fallback = await fallbackQuery.range(from, to);
-          if (fallback.error) throw fallback.error;
-          return { data: fallback.data.map(db._mapProduct), count: fallback.count };
-        }
-        throw error;
-      }
+      if (error) throw error;
       
       return { data: data.map(db._mapProduct), count };
     } catch (err) {
@@ -118,7 +90,7 @@ export const db = {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .or(`title.ilike.%${searchQuery}%,category.ilike.%${searchQuery}%,id.ilike.%${searchQuery}%`)
+        .textSearch('fts', searchQuery.trim().split(/\s+/).join(' & '), { config: 'english' })
         .limit(20);
       
       if (error) throw error;

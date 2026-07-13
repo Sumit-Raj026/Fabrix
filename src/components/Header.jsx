@@ -27,7 +27,7 @@ const HighlightText = ({ text = '', matches }) => {
   );
 };
 
-export default function Header({ searchTerm, setSearchTerm, theme, toggleTheme, onSelectProduct, onOpenB2B }) {
+export default function Header({ searchTerm, setSearchTerm, theme, toggleTheme, onSelectProduct }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
@@ -80,9 +80,11 @@ export default function Header({ searchTerm, setSearchTerm, theme, toggleTheme, 
         {/* Brand Logo */}
         <div className="flex items-center gap-2">
           <Link to="/" className="group">
-            <span className="font-serif text-lg sm:text-2xl md:text-3xl font-semibold tracking-[0.25em] text-stone-900 dark:text-white uppercase select-none transition-colors duration-300 group-hover:text-brand-gold">
-              {CONFIG.STORE_NAME}
-            </span>
+            <img 
+              src="/logo.png" 
+              alt={CONFIG.STORE_NAME} 
+              className="h-8 sm:h-10 md:h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-105 rounded-sm shadow-sm"
+            />
           </Link>
         </div>
 

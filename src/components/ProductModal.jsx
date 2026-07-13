@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getOptimizedImageUrl } from '../utils/imageOptimization';
 import { X, Send, Award, ChevronLeft, ChevronRight } from 'lucide-react';
 import FocusTrap from 'focus-trap-react';
 import { CONFIG } from '../config';
@@ -123,9 +124,10 @@ export default function ProductModal({ product, onClose }) {
           {/* Main Display Image */}
           <div className="w-full h-full relative overflow-hidden">
             <img 
-              src={product.images[currentImageIndex]} 
+              src={getOptimizedImageUrl(product.images[currentImageIndex], { width: 1200, crop: 'fill' })} 
               alt={`${product.title} view ${currentImageIndex + 1}`} 
               className={`w-full h-full object-cover transition-opacity duration-150 ${isFading ? 'opacity-30' : 'opacity-100'}`}
+              loading="lazy"
             />
           </div>
 
@@ -169,7 +171,7 @@ export default function ProductModal({ product, onClose }) {
                       : 'border-transparent opacity-50 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt={`${product.title} thumbnail ${idx + 1}`} className="w-full h-full object-cover" />
+                  <img src={getOptimizedImageUrl(img, { width: 200, crop: 'fill' })} alt={`${product.title} thumbnail ${idx + 1}`} className="w-full h-full object-cover" loading="lazy" />
                 </button>
               ))}
             </div>

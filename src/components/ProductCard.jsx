@@ -1,4 +1,5 @@
 import React from 'react';
+import { getOptimizedImageUrl } from '../utils/imageOptimization';
 import { Eye, ArrowRight } from 'lucide-react';
 import { formatSKU } from '../utils/formatters';
 
@@ -24,7 +25,7 @@ export default function ProductCard({ product, onOpen }) {
       {/* Image Container with aspect ratio */}
       <div className="relative aspect-[4/5] bg-brand-charcoal overflow-hidden border-b border-brand-border/55">
         <img 
-          src={product.images?.[0] || ''} 
+          src={getOptimizedImageUrl(product.images?.[0] || '', { width: 600, crop: 'fill' })} 
           alt={product.title} 
           className="w-full h-full object-cover product-card-img"
           loading="lazy"
