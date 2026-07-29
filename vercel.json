@@ -30,11 +30,10 @@
       ]
     }
   ],
-  "cleanUrls": false,
-  "rewrites": [
-    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+  "routes": [
+    { "src": "/sitemap.xml", "dest": "/api/sitemap" },
     {
-      "source": "/(.*)",
+      "src": "/(.*)",
       "has": [
         {
           "type": "header",
@@ -42,8 +41,9 @@
           "value": "(?i).*(googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|whatsapp).*"
         }
       ],
-      "destination": "/api/prerender?url=https://hellofabrix.com/$1"
+      "dest": "/api/prerender?url=https://hellofabrix.com/$1"
     },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
