@@ -44,6 +44,6 @@
       "dest": "/api/prerender?url=https://hellofabrix.com/$1"
     },
     { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "src": "/(.*)", "dest": "/" }
   ]
 }
