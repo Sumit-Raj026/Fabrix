@@ -43,6 +43,6 @@
       ],
       "destination": "/api/prerender?url=https://hellofabrix.com/$1"
     },
-    { "source": "/(.*)", "destination": "/" }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
